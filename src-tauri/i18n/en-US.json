@@ -1,0 +1,17 @@
+{
+    "screen_qr_reader": "Screen QR Reader",
+    "notification.notfound": "QR Code not found",
+    "notification.capture_error": "An error occurred in capturing the QR Code!",
+    "notification.decode_error": "An error occurred in decoding the QR Code!",
+    "notification.unopenable_url": "could not open this url",
+    "dialog.successful": "Successful QR Code reading!\n{}",
+    "dialog.copy_clipboard": "Copy to clipboard",
+    "dialog.cancel": "Cancel",
+    "dialog.copy_clipboard_error": "Could not copy qr code content to clipboard",
+    "tray.scan": "Scan",
+    "tray.open_browser": "Open in browser if URL",
+    "tray.enable_hotkey": "Enable shortcut ⇧⌘1",
+    "tray.preferences": "Preferences",
+    "tray.about": "About",
+    "tray.quit": "Quit"
+}

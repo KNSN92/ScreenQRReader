@@ -1,0 +1,17 @@
+{
+    "screen_qr_reader": "Screen QR Reader",
+    "notification.notfound": "QRコードが見つかりませんでした",
+    "notification.capture_error": "QRコードの読み取りに失敗しました!",
+    "notification.decode_error": "QRコードの解析に失敗しました!",
+    "notification.unopenable_url": "URLを開けませんでした",
+    "dialog.successful": "QRコードの読み取りに成功しました!\n{}",
+    "dialog.copy_clipboard": "クリップボードへコピー",
+    "dialog.cancel": "キャンセル",
+    "dialog.copy_clipboard_error": "クリップボードへのコピーに失敗しました。",
+    "tray.scan": "読み取り",
+    "tray.preferences": "設定",
+    "tray.open_browser": "URLならブラウザで開く",
+    "tray.enable_hotkey": "ショートカットキー ⇧⌘1 を有効化",
+    "tray.about": "アプリについて",
+    "tray.quit": "終了"
+}
