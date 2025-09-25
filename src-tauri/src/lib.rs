@@ -7,9 +7,8 @@ use tray::setup_tray;
 
 mod capturer;
 mod i18n;
-mod platform;
 mod qr_reader;
-mod shortcut;
+mod hotkey;
 
 use tauri::{App, Manager};
 
@@ -21,7 +20,6 @@ pub struct AppState {
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    platform::check_platform();
     tauri::Builder::default()
         .plugin(
             tauri_plugin_log::Builder::new()
@@ -45,7 +43,7 @@ pub fn run() {
         })
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
-}
+    }
 
 fn setup(app: &mut App) {
     app.manage(AppState {
@@ -56,7 +54,11 @@ fn setup(app: &mut App) {
         )),
         open_browser: AtomicBool::new(false),
     });
-    app.set_activation_policy(tauri::ActivationPolicy::Accessory);
-
+    #[cfg(target_os = "macos")]
+    {
+        use tauri::ActivationPolicy;
+        app.set_activation_policy(ActivationPolicy::Accessory);
+        app.set_dock_visibility(false);
+    }
     i18n::initialize(app.handle());
 }

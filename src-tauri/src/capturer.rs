@@ -22,5 +22,5 @@ const WIN_CAPTURE_URI: &str = "ms-screenclip://capture/image?rectangle&";
 
 #[cfg(target_os = "windows")]
 pub async fn capture(app: &AppHandle) -> Result<Option<DynamicImage>, Box<dyn Error>> {
-    panic!("This application is not supported on this platform :(");
+    unimplemented!("This application is not supported on this platform :(");
 }

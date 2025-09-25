@@ -1,8 +1,7 @@
-use std::{error::Error, sync::atomic::Ordering};
+use std::{error::Error, string::FromUtf8Error, sync::atomic::Ordering};
 
 use crate::{capturer, i18n, AppState};
 use log::{error, info, trace, warn};
-use rqrr::DeQRError;
 use tauri::{AppHandle, Manager};
 use tauri_plugin_clipboard_manager::ClipboardExt;
 use tauri_plugin_dialog::{DialogExt, MessageDialogButtons, MessageDialogKind};
@@ -16,7 +15,8 @@ pub enum ScanResponse {
     Canceled,
     NotFound,
     CaptureError(Box<dyn Error>),
-    DecodeError(DeQRError),
+    QRDecodeError(&'static str),
+    UTF8EncodeError(FromUtf8Error)
 }
 
 async fn read_qr(app: &AppHandle) -> ScanResponse {
@@ -30,14 +30,21 @@ async fn read_qr(app: &AppHandle) -> ScanResponse {
             return ScanResponse::CaptureError(error);
         }
     };
-    let mut image = rqrr::PreparedImage::prepare(image.to_luma8());
-    let grids = image.detect_grids();
-    if grids.len() == 0 {
+    let mut scanner = zbar_rust::ZBarImageScanner::new();
+    let img_width = image.width();
+    let img_height = image.height();
+    let results = scanner.scan_y800(image.to_luma8().into_raw(), img_width, img_height);
+    let mut results = if let Err(err) = results {
+        return ScanResponse::QRDecodeError(err);
+    }else {
+        results.unwrap()
+    };
+    if results.is_empty() {
         return ScanResponse::NotFound;
     }
-    match grids[0].decode() {
-        Ok((_, content)) => ScanResponse::Success(content),
-        Err(error) => ScanResponse::DecodeError(error),
+    match String::from_utf8(results.remove(0).data) {
+        Ok(content) => ScanResponse::Success(content),
+        Err(error) => ScanResponse::UTF8EncodeError(error),
     }
 }
 
@@ -62,7 +69,7 @@ async fn process_qr_inner(app_handle: &AppHandle) {
         .load(Ordering::Relaxed);
     match read_qr(app_handle).await {
         ScanResponse::Success(content) => {
-            info!("Success! {content}");
+            info!("Success! '{content}'");
             if open_browser && is_url(&content) {
                 open_as_url(app_handle, &content);
             } else {
@@ -88,11 +95,19 @@ async fn process_qr_inner(app_handle: &AppHandle) {
                 None,
             );
         }
-        ScanResponse::DecodeError(error) => {
+        ScanResponse::QRDecodeError(error) => {
             error!("Decode error! {}", error);
             notificate(
                 app_handle,
-                Some(&i18n::translate(app_handle, "notification.decode_error")),
+                Some(&i18n::translate(app_handle, "notification.qr_decode_error")),
+                None,
+            );
+        }
+        ScanResponse::UTF8EncodeError(error) => {
+            error!("UTF-8 Encode error! {}", error);
+            notificate(
+                app_handle,
+                Some(&i18n::translate(app_handle, "notification.utf8_encode_error")),
                 None,
             );
         }
@@ -122,7 +137,7 @@ fn open_as_text(app_handle: &AppHandle, content: &str) {
         .title(i18n::translate(app_handle, "screen_qr_reader"))
         .buttons(MessageDialogButtons::OkCancelCustom(
             i18n::translate(app_handle, "dialog.copy_clipboard").to_string(),
-            i18n::translate(app_handle, "dialog.cancel").to_string(),
+            i18n::translate(app_handle, "dialog.close").to_string(),
         ))
         .blocking_show();
     if result {

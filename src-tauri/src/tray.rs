@@ -13,7 +13,7 @@ use tauri_plugin_store::{Store, StoreExt};
 use crate::{
     i18n,
     qr_reader::process_qr,
-    shortcut::{register_capture_hotkey, unregister_capture_hotkey},
+    hotkey::{register_capture_hotkey, unregister_capture_hotkey},
     AppState,
 };
 
@@ -29,15 +29,7 @@ pub fn setup_tray(app: &App) -> Result<(), Box<dyn Error>> {
         Some("Command+Shift+1"),
     )?;
 
-    let preference_open_browser = if let Ok(store) = get_store(app.handle()) {
-        store
-            .get("open_browser")
-            .map_or(OPEN_BROWSER_PREFERENCE_DEFAULT, |v| {
-                v.as_bool().unwrap_or(OPEN_BROWSER_PREFERENCE_DEFAULT)
-            })
-    } else {
-        OPEN_BROWSER_PREFERENCE_DEFAULT
-    };
+    let preference_open_browser = get_stored_bool_value(app.handle(), "open_browser", OPEN_BROWSER_PREFERENCE_DEFAULT);
     app.state::<AppState>()
         .open_browser
         .store(preference_open_browser, Ordering::Relaxed);
@@ -49,16 +41,7 @@ pub fn setup_tray(app: &App) -> Result<(), Box<dyn Error>> {
         preference_open_browser,
         None::<&str>,
     )?;
-    let preference_enable_hotkey = if let Ok(store) = get_store(app.handle()) {
-        store
-            .get("enable_hotkey")
-            .map_or(ENABLE_CAPTURE_HOTKEY_PREFERENCE_DEFAULT, |v| {
-                v.as_bool()
-                    .unwrap_or(ENABLE_CAPTURE_HOTKEY_PREFERENCE_DEFAULT)
-            })
-    } else {
-        ENABLE_CAPTURE_HOTKEY_PREFERENCE_DEFAULT
-    };
+    let preference_enable_hotkey = get_stored_bool_value(app.handle(),"enable_hotkey", ENABLE_CAPTURE_HOTKEY_PREFERENCE_DEFAULT);
     if preference_enable_hotkey {
         register_capture_hotkey(app.handle()).unwrap();
     }
@@ -89,6 +72,7 @@ pub fn setup_tray(app: &App) -> Result<(), Box<dyn Error>> {
 
     TrayIconBuilder::new()
         .icon(include_image!("tray-icon.png"))
+        .icon_as_template(true)
         .on_tray_icon_event(|tray, event| tray_icon_event(tray, event))
         .menu(&menu)
         .on_menu_event(move |app, event| match event.id.as_ref() {
@@ -144,4 +128,14 @@ fn tray_icon_event(tray: &TrayIcon, event: TrayIconEvent) {
 
 fn get_store<R: tauri::Runtime>(app: &AppHandle<R>) -> tauri_plugin_store::Result<Arc<Store<R>>> {
     app.store("config.json")
+}
+
+fn get_stored_bool_value<R: tauri::Runtime>(app: &AppHandle<R>, key: &str, default: bool) -> bool {
+    if let Ok(store) = get_store(app) {
+        store
+            .get(key)
+            .map_or(default, |v| v.as_bool().unwrap_or(default))
+    } else {
+        default
+    }
 }
