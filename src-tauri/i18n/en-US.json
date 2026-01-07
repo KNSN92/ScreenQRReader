@@ -3,7 +3,7 @@
     "notification.notfound": "QR Code not found",
     "notification.capture_error": "An error occurred in capturing the QR Code!",
     "notification.qr_decode_error": "An error occurred in decoding the QR Code!",
-    "notification.utf8_encode_error": "An error occurred in encoding the utf-8!",
+    "notification.utf8_encode_error": "An error occurred in encoding as a text!",
     "notification.unopenable_url": "could not open this url",
     "dialog.successful": "Successful QR Code reading!\n{}",
     "dialog.copy_clipboard": "Copy to clipboard",
