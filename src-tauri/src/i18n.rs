@@ -20,7 +20,7 @@ pub fn initialize(app_handle: &AppHandle) {
     });
 }
 
-pub fn translate<'a>(app_handle: &'a AppHandle, key: &str) -> String {
+pub fn translate(app_handle: &AppHandle, key: &str) -> String {
     let i18n_data = app_handle.state::<I18nData>();
     let localizations = &i18n_data.localizations;
     let translated = localizations
@@ -33,7 +33,7 @@ pub fn translate<'a>(app_handle: &'a AppHandle, key: &str) -> String {
     translated
 }
 
-pub fn translate_format<'a>(app_handle: &'a AppHandle, key: &str, text: &str) -> String {
+pub fn translate_format(app_handle: &AppHandle, key: &str, text: &str) -> String {
     translate(app_handle, key).replace("{}", text)
 }
 
