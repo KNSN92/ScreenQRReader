@@ -1,11 +1,10 @@
-use std::error::Error;
-
+use anyhow::Result;
 use tauri::{AppHandle, Manager};
 use tauri_plugin_global_shortcut::{GlobalShortcutExt, ShortcutState};
 
 use crate::{qr_reader::process_qr, AppState};
 
-pub fn register_capture_hotkey(app: &AppHandle) -> Result<(), Box<dyn Error>> {
+pub fn register_capture_hotkey(app: &AppHandle) -> Result<()> {
     let app_state = app.state::<AppState>();
     let shortcut = *app_state
         .read_qr_shortcut
@@ -20,7 +19,7 @@ pub fn register_capture_hotkey(app: &AppHandle) -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-pub fn unregister_capture_hotkey(app: &AppHandle) -> Result<(), Box<dyn Error>> {
+pub fn unregister_capture_hotkey(app: &AppHandle) -> Result<()> {
     let app_state = app.state::<AppState>();
     let shortcut = *app_state
         .read_qr_shortcut

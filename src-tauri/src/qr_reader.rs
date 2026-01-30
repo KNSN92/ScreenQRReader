@@ -1,6 +1,7 @@
-use std::{error::Error, string::FromUtf8Error, sync::atomic::Ordering};
+use std::{string::FromUtf8Error, sync::atomic::Ordering};
 
-use crate::{capturer, i18n, AppState};
+use crate::{screenshot, i18n, AppState};
+use anyhow::Error;
 use log::{error, info, trace, warn};
 use tauri::{AppHandle, Manager};
 use tauri_plugin_clipboard_manager::ClipboardExt;
@@ -14,7 +15,7 @@ pub enum ScanResponse {
     Success(String),
     Canceled,
     NotFound,
-    CaptureError(Box<dyn Error>),
+    CaptureError(Error),
     QRDecodeError(&'static str),
     UTF8EncodeError(FromUtf8Error)
 }

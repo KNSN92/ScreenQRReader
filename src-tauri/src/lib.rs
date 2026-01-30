@@ -5,10 +5,12 @@ use log::info;
 use tauri_plugin_global_shortcut::{Modifiers, Shortcut};
 use tray::setup_tray;
 
-mod capturer;
+mod hotkey;
 mod i18n;
+mod misc;
 mod qr_reader;
 mod screenshot;
+mod tray;
 
 use tauri::{App, Manager};
 

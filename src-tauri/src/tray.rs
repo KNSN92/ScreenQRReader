@@ -2,6 +2,7 @@ use std::{
     error::Error,
     sync::{atomic::Ordering, Arc},
 };
+use anyhow::Result;
 use tauri::{
     include_image,
     menu::{CheckMenuItem, MenuBuilder, MenuItem, Submenu},
@@ -11,10 +12,7 @@ use tauri::{
 use tauri_plugin_store::{Store, StoreExt};
 
 use crate::{
-    i18n,
-    qr_reader::process_qr,
-    hotkey::{register_capture_hotkey, unregister_capture_hotkey},
-    AppState,
+    AppState, hotkey::{register_capture_hotkey, unregister_capture_hotkey}, i18n, qr_reader::process_qr, misc::wrap_anyhow
 };
 
 const OPEN_BROWSER_PREFERENCE_DEFAULT: bool = true;
@@ -126,8 +124,8 @@ fn tray_icon_event(tray: &TrayIcon, event: TrayIconEvent) {
     }
 }
 
-fn get_store<R: tauri::Runtime>(app: &AppHandle<R>) -> tauri_plugin_store::Result<Arc<Store<R>>> {
-    app.store("config.json")
+fn get_store<R: tauri::Runtime>(app: &AppHandle<R>) -> Result<Arc<Store<R>>> {
+    wrap_anyhow(app.store("config.json"))
 }
 
 fn get_stored_bool_value<R: tauri::Runtime>(app: &AppHandle<R>, key: &str, default: bool) -> bool {
