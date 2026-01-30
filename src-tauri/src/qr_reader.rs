@@ -20,7 +20,7 @@ pub enum ScanResponse {
 }
 
 async fn read_qr(app: &AppHandle) -> ScanResponse {
-    let image = capturer::capture(app).await;
+    let image = screenshot::capture(app).await;
     let image = match image {
         Ok(image) => match image {
             Some(image) => image,

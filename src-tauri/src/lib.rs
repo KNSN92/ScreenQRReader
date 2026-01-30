@@ -8,7 +8,7 @@ use tray::setup_tray;
 mod capturer;
 mod i18n;
 mod qr_reader;
-mod hotkey;
+mod screenshot;
 
 use tauri::{App, Manager};
 
