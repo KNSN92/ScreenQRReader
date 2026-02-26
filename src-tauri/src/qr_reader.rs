@@ -1,8 +1,8 @@
-use std::{string::FromUtf8Error, sync::atomic::Ordering};
+use std::sync::atomic::Ordering;
 
-use crate::{screenshot, i18n, AppState};
+use crate::{i18n, screenshot, AppState};
 use anyhow::Error;
-use log::{error, info, trace, warn};
+use log::{debug, error, info, trace, warn};
 use tauri::{AppHandle, Manager};
 use tauri_plugin_clipboard_manager::ClipboardExt;
 use tauri_plugin_dialog::{DialogExt, MessageDialogButtons, MessageDialogKind};
@@ -17,7 +17,7 @@ pub enum ScanResponse {
     NotFound,
     CaptureError(Error),
     QRDecodeError(&'static str),
-    UTF8EncodeError(FromUtf8Error)
+    EncodingError,
 }
 
 async fn read_qr(app: &AppHandle) -> ScanResponse {
@@ -37,15 +37,15 @@ async fn read_qr(app: &AppHandle) -> ScanResponse {
     let results = scanner.scan_y800(image.to_luma8().into_raw(), img_width, img_height);
     let mut results = if let Err(err) = results {
         return ScanResponse::QRDecodeError(err);
-    }else {
+    } else {
         results.unwrap()
     };
     if results.is_empty() {
         return ScanResponse::NotFound;
     }
-    match String::from_utf8(results.remove(0).data) {
-        Ok(content) => ScanResponse::Success(content),
-        Err(error) => ScanResponse::UTF8EncodeError(error),
+    match try_decode_to_utf8(results.remove(0).data) {
+        Some(content) => ScanResponse::Success(content),
+        None => ScanResponse::EncodingError,
     }
 }
 
@@ -104,15 +104,22 @@ async fn process_qr_inner(app_handle: &AppHandle) {
                 None,
             );
         }
-        ScanResponse::UTF8EncodeError(error) => {
-            error!("UTF-8 Encode error! {}", error);
+        ScanResponse::EncodingError => {
+            error!("Encoding error!");
             notificate(
                 app_handle,
-                Some(&i18n::translate(app_handle, "notification.utf8_encode_error")),
+                Some(&i18n::translate(app_handle, "notification.encoding_error")),
                 None,
             );
         }
     };
+}
+
+fn try_decode_to_utf8(data: Vec<u8>) -> Option<String> {
+    match String::from_utf8(data) {
+        Ok(text) => Some(text),
+        Err(_) => None,
+    }
 }
 
 fn open_as_url(app_handle: &AppHandle, content: &str) {
