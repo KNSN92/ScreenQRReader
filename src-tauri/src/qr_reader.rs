@@ -2,7 +2,7 @@ use std::sync::atomic::Ordering;
 
 use crate::{i18n, screenshot, AppState};
 use anyhow::Error;
-use log::{debug, error, info, trace, warn};
+use log::{error, info, trace, warn};
 use tauri::{AppHandle, Manager};
 use tauri_plugin_clipboard_manager::ClipboardExt;
 use tauri_plugin_dialog::{DialogExt, MessageDialogButtons, MessageDialogKind};
@@ -20,7 +20,7 @@ pub enum ScanResponse {
     EncodingError,
 }
 
-async fn read_qr(app: &AppHandle) -> ScanResponse {
+async fn scan_qr(app: &AppHandle) -> ScanResponse {
     let image = screenshot::capture(app).await;
     let image = match image {
         Ok(image) => match image {
@@ -68,7 +68,7 @@ async fn process_qr_inner(app_handle: &AppHandle) {
         .state::<AppState>()
         .open_browser
         .load(Ordering::Relaxed);
-    match read_qr(app_handle).await {
+    match scan_qr(app_handle).await {
         ScanResponse::Success(content) => {
             info!("Success! '{content}'");
             if open_browser && is_url(&content) {
