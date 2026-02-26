@@ -1,0 +1,78 @@
+@import "tailwindcss";
+
+@theme {
+    --color-bg: #202020;
+    --color-text: #ffffff;
+}
+
+@keyframes loading-lu {
+    0%,2% {
+        transform: translate(0, 0);
+    }
+    23%,27% {
+        transform: translate(calc(28 / 49 * 100%), 0);
+    }
+    48%,52% {
+        transform: translate(calc(28 / 49 * 100%), calc(28 / 49 * 100%));
+    }
+    73%,77% {
+        transform: translate(0, calc(28 / 49 * 100%));
+    }
+    98%,100% {
+        transform: translate(0, 0);
+    }
+}
+
+@keyframes loading-ru {
+    0%,2% {
+        transform: translate(0, 0);
+    }
+    23%,27% {
+        transform: translate(0, calc(28 / 49 * 100%));
+    }
+    48%,52% {
+        transform: translate(calc(28 / 49 * -100%), calc(28 / 49 * 100%));
+    }
+    73%,77% {
+        transform: translate(calc(28 / 49 * -100%), 0);
+    }
+    98%,100% {
+        transform: translate(0, 0);
+    }
+}
+
+@keyframes loading-ld {
+    0%,2% {
+        transform: translate(0, 0);
+    }
+    23%,27% {
+        transform: translate(0, calc(28 / 49 * -100%));
+    }
+    48%,52% {
+        transform: translate(calc(28 / 49 * 100%), calc(28 / 49 * -100%));
+    }
+    73%,77% {
+        transform: translate(calc(28 / 49 * 100%), 0);
+    }
+    98%,100% {
+        transform: translate(0, 0);
+    }
+}
+
+@keyframes loading-rd {
+    0%,2% {
+        transform: translate(0, 0);
+    }
+    23%,27% {
+        transform: translate(calc(245 / 490 * -100%), 0);
+    }
+    48%,52% {
+        transform: translate(calc(245 / 490 * -100%), calc(245 / 490 * -100%));
+    }
+    73%,77% {
+        transform: translate(0, calc(245 / 490 * -100%));
+    }
+    98%,100% {
+        transform: translate(0, 0);
+    }
+}
