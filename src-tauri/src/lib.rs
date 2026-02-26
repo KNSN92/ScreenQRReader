@@ -8,12 +8,12 @@ use tray::setup_tray;
 
 use crate::qr_maker::generate_qrcode;
 
+mod capturer;
 mod hotkey;
 mod i18n;
 mod misc;
 mod qr_maker;
 mod qr_reader;
-mod screenshot;
 mod tray;
 
 pub struct AppState {
