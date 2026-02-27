@@ -3,7 +3,7 @@ import clsx from "clsx";
 
 export function Loading() {
   return (
-    <div className="p-16">
+    <div className="size-1/2">
       <LoadingSvg />
     </div>
   );
