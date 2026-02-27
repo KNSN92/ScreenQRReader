@@ -1,6 +1,8 @@
 use anyhow::Result;
+use image::ImageFormat;
+use log::debug;
 use qrcode::{types::QrError, EcLevel, QrCode};
-use serde::{Deserialize, Serialize};
+use serde::{de, Deserialize, Serialize};
 use tauri::{AppHandle, WebviewUrl, WebviewWindowBuilder};
 
 pub fn create_window(app: &AppHandle) -> Result<()> {
@@ -81,4 +83,48 @@ pub fn generate_qrcode(payload: GenerateQRCodePayload) -> GenerateQRCodeResponse
             }
         },
     }
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub enum ValidateQRCodeResponse {
+    Valid,
+    Invalid,
+    Error(String),
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct ValidateQRCodePayload {
+    data: Vec<u8>,
+    image: Vec<u8>,
+}
+
+#[tauri::command]
+pub fn validate_qrcode(payload: ValidateQRCodePayload) -> ValidateQRCodeResponse {
+    let qr_img = image::load_from_memory_with_format(&payload.image, ImageFormat::Png);
+    let qr_img = match qr_img {
+        Ok(img) => img,
+        Err(_) => return ValidateQRCodeResponse::Error("InvalidImage".to_string()),
+    };
+    let mut scanner = zbar_rust::ZBarImageScanner::new();
+    let img_width = qr_img.width();
+    let img_height = qr_img.height();
+    let results = scanner.scan_y800(qr_img.to_luma8().into_raw(), img_width, img_height);
+    let mut results = if let Err(_) = results {
+        return ValidateQRCodeResponse::Error("ScanError".to_string());
+    } else {
+        results.unwrap()
+    };
+    if results.is_empty() {
+        debug!("No QR code found in the image");
+        return ValidateQRCodeResponse::Invalid;
+    }
+    let qr_data = results.remove(0).data;
+    if qr_data != payload.data {
+        debug!(
+            "QR code data does not match. Expected: {:?}, Found: {:?}",
+            payload.data, qr_data
+        );
+        return ValidateQRCodeResponse::Invalid;
+    }
+    ValidateQRCodeResponse::Valid
 }

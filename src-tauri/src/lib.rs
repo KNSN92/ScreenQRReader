@@ -6,7 +6,7 @@ use tauri::{App, Manager};
 use tauri_plugin_global_shortcut::{Modifiers, Shortcut};
 use tray::setup_tray;
 
-use crate::qr_maker::generate_qrcode;
+use crate::qr_maker::{generate_qrcode, validate_qrcode};
 
 mod hotkey;
 mod i18n;
@@ -45,7 +45,7 @@ pub fn run() {
             info!("Setup completed");
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![generate_qrcode])
+        .invoke_handler(tauri::generate_handler![generate_qrcode, validate_qrcode])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
