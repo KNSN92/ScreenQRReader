@@ -1,88 +1,90 @@
-import { useEffect, useRef, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import {
   genQRCode,
   GenQRCodeOptions,
+  QRError,
   validateQRCode,
   ValidateQRCodeResponse,
 } from "../libs/qrcode";
 import { Loading } from "./Loading";
+import { Icon } from "./Icon";
 
 interface Props {
   text: string;
-  options?: GenQRCodeOptions;
-  setValidateResult?: (
-    result: ValidateQRCodeResponse | { error: "InvalidData" },
+  ecclevel: "L" | "M" | "Q" | "H";
+  options: GenQRCodeOptions;
+  setQRCodeStatus?: (
+    status:
+      | ValidateQRCodeResponse
+      | QRError
+      | "InvalidData"
+      | "Generating"
+      | "Empty",
   ) => void;
 }
 
-export function QRCode({ text, options, setValidateResult }: Props) {
+export function QRCode({ text, ecclevel, options, setQRCodeStatus }: Props) {
   const previewRef = useRef<HTMLDivElement>(null);
   const [isGenerating, startGenerate] = useTransition();
+  const [isEmpty, setIsEmpty] = useState(true);
 
   async function generate() {
     // せっかく作ったローディング表示が一瞬で消えるのは寂しいので、偽のロードを表示。許してちょ ;-)
-    await wait(Math.random() * 500 + 500);
     if (!previewRef.current) return;
     const preview = previewRef.current;
     if (text === "") {
       previewRef.current.innerHTML = "";
+      setIsEmpty(true);
+      setQRCodeStatus?.("Empty");
       return;
     }
+    setQRCodeStatus?.("Generating");
 
-    const qrcode = await genQRCode(text, "M", {
-      type: "canvas",
-      width: 400,
-      height: 400,
-      margin: 20,
-      dotsOptions: {
-        color: "#000",
-        type: "extra-rounded",
-      },
-      cornersDotOptions: {
-        color: "#f00",
-        type: "extra-rounded",
-      },
-      cornersSquareOptions: {
-        color: "#00f",
-      },
-      ...options,
-    });
+    await wait(Math.random() * 500 + 500);
+
+    const qrcode = await genQRCode(text, ecclevel, options);
     if (typeof qrcode === "string") {
       console.error(qrcode);
+      setQRCodeStatus?.(qrcode);
     } else {
       preview.innerHTML = "";
       qrcode.append(preview);
+      setIsEmpty(false);
 
       const data = await qrcode.getRawData("png");
       if (data == null) {
-        setValidateResult?.({ error: "InvalidData" });
+        setQRCodeStatus?.("InvalidData");
         return;
       }
       const validate = await validateQRCode(
         new TextEncoder().encode(text),
         new Uint8Array(await data.arrayBuffer()),
       );
-      if (setValidateResult) {
-        setValidateResult(validate);
-      }
+      setQRCodeStatus?.(validate);
     }
   }
 
   useEffect(() => {
     startGenerate(generate);
-  }, [text, options]);
+  }, [text, ecclevel, options]);
   return (
     <>
-      {isGenerating && (
+      {(isGenerating || isEmpty) && (
         <div className="size-full flex justify-center items-center">
-          <Loading />
+          {isGenerating && <Loading />}
+          {isEmpty && !isGenerating && (
+            <Icon
+              className="size-1/2 aspect-square"
+              shapeClassName="fill-stone-400"
+            />
+          )}
         </div>
       )}
       <div
         ref={previewRef}
         id="qrcode-preview"
         className="*:w-full *:h-full"
-        hidden={isGenerating}
+        hidden={isGenerating || isEmpty}
       />
     </>
   );
