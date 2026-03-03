@@ -1,8 +1,12 @@
 @import "tailwindcss";
 
 @theme {
-    --color-bg: #202020;
-    --color-text: #ffffff;
+    --color-fg: #444;
+    --color-fg-dark: #333;
+    --color-bg: #222;
+    --color-text-primary: #fff;
+    --color-text-secondary: #888;
+    --color-primary: #08f;
 }
 
 @keyframes loading-lu {
