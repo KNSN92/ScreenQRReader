@@ -7,7 +7,11 @@ use tauri::{AppHandle, WebviewUrl, WebviewWindowBuilder};
 pub fn create_window(app: &AppHandle) -> Result<()> {
     let window = WebviewWindowBuilder::new(app, "qr_maker", WebviewUrl::App("index.html".into()))
         .title("QR Code Maker")
-        // .resizable(false)
+        .inner_size(
+            1024.,
+            768. + if cfg!(target_os = "macos") { 27.5 } else { 0. },
+        )
+        .resizable(false)
         .center()
         .build()?;
     Ok(())
