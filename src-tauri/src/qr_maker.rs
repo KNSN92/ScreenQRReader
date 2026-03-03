@@ -1,8 +1,7 @@
 use anyhow::Result;
-use image::ImageFormat;
-use log::debug;
+use image::{ImageBuffer, ImageFormat, Luma, Rgb};
 use qrcode::{types::QrError, EcLevel, QrCode};
-use serde::{de, Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
 use tauri::{AppHandle, WebviewUrl, WebviewWindowBuilder};
 
 pub fn create_window(app: &AppHandle) -> Result<()> {
@@ -102,28 +101,47 @@ pub struct ValidateQRCodePayload {
 pub fn validate_qrcode(payload: ValidateQRCodePayload) -> ValidateQRCodeResponse {
     let qr_img = image::load_from_memory_with_format(&payload.image, ImageFormat::Png);
     let qr_img = match qr_img {
-        Ok(img) => img,
+        Ok(img) => img.to_luma8(),
         Err(_) => return ValidateQRCodeResponse::Error("InvalidImage".to_string()),
     };
+    test_qrcode(qr_img, payload.data)
+}
+
+const MARGIN_COLORS: [Rgb<u8>; 8] = [
+    Rgb([0, 0, 0]),
+    Rgb([255, 0, 0]),
+    Rgb([0, 255, 0]),
+    Rgb([0, 0, 255]),
+    Rgb([255, 255, 0]),
+    Rgb([0, 255, 255]),
+    Rgb([255, 0, 255]),
+    Rgb([255, 255, 255]),
+];
+
+const MARGIN: usize = 2; //
+
+// fn test_qrcode_outer_colors<P: Pixel, Container>(
+//     qr_img: ImageBuffer<P, Container>,
+// ) -> ValidateQRCodeResponse {
+//     for margin_color in MARGIN_COLORS {
+//         let with_margin_qr_img =
+//     }
+// }
+
+fn test_qrcode(qr_img: ImageBuffer<Luma<u8>, Vec<u8>>, data: Vec<u8>) -> ValidateQRCodeResponse {
     let mut scanner = zbar_rust::ZBarImageScanner::new();
-    let img_width = qr_img.width();
-    let img_height = qr_img.height();
-    let results = scanner.scan_y800(qr_img.to_luma8().into_raw(), img_width, img_height);
+    let (img_width, img_height) = qr_img.dimensions();
+    let results = scanner.scan_y800(qr_img.into_raw(), img_width, img_height);
     let mut results = if let Err(_) = results {
         return ValidateQRCodeResponse::Error("ScanError".to_string());
     } else {
         results.unwrap()
     };
     if results.is_empty() {
-        debug!("No QR code found in the image");
         return ValidateQRCodeResponse::Invalid;
     }
     let qr_data = results.remove(0).data;
-    if qr_data != payload.data {
-        debug!(
-            "QR code data does not match. Expected: {:?}, Found: {:?}",
-            payload.data, qr_data
-        );
+    if qr_data != data {
         return ValidateQRCodeResponse::Invalid;
     }
     ValidateQRCodeResponse::Valid

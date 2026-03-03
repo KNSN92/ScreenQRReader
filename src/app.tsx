@@ -1,19 +1,18 @@
-import { Suspense, useEffect, useState, useTransition } from "react";
+import { useState } from "react";
 import { useImmer } from "use-immer";
-import { genQRCode, GenQRCodeOptions } from "./libs/qrcode";
+import { GenQRCodeOptions, ValidateQRCodeResponse } from "./libs/qrcode";
 import { useDebouncedCallback } from "use-debounce";
-import { Loading } from "./components/Loading";
 import { QRCode } from "./components/QRCode";
-
-const BOM = "\uFEFF";
 
 export function App() {
   const [qrcodeOption, setQRCodeOption] = useImmer<GenQRCodeOptions>({});
   const [text, setText] = useState("");
-  const [isQRCodeGenerating, startGenerateQRCode] = useTransition();
   const handleTextChange = useDebouncedCallback((text: string) => {
-    setText(BOM + text);
+    setText(text);
   }, 500);
+  const [qrcodeValidateResult, setQRCodeValidateResult] = useState<
+    ValidateQRCodeResponse | { error: "InvalidData" } | null
+  >(null);
   return (
     <div className="size-full py-4 grid grid-cols-2 grid-rows-1 bg-bg">
       <div className="px-4">
@@ -27,10 +26,13 @@ export function App() {
         </div>
       </div>
       <div className="flex flex-col">
+        <div className="text-white">{qrcodeValidateResult?.toString()}</div>
         <div className="aspect-square">
-          <Suspense fallback={<Loading />}>
-            <QRCode text={text} options={qrcodeOption} />
-          </Suspense>
+          <QRCode
+            text={text}
+            options={qrcodeOption}
+            setValidateResult={setQRCodeValidateResult}
+          />
         </div>
         <div>
           <button>Save</button>
