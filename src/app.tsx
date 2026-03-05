@@ -24,6 +24,7 @@ import {
   Gradient,
 } from "qr-code-styling";
 import { Icon } from "./components/Icon";
+import { Button } from "./components/ui/Button";
 
 type QRCodeMakerOptions = GenQRCodeOptions & {
   type: DrawType;
@@ -282,10 +283,10 @@ export function App() {
           </div>
         </div>
         {/* TODO: ダウンロード出来るようにする */}
-        <button className="flex gap-4 items-center justify-center w-full h-16 rounded-xl bg-primary text-4xl text-text-primary cursor-pointer shadow-md shadow-black/20">
+        <Button variant="secondary">
           <ArrowDownTrayIcon className="w-10" />
           Save
-        </button>
+        </Button>
       </div>
     </div>
   );
