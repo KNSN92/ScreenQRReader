@@ -1,18 +1,25 @@
+use anyhow::Result;
+use log::error;
 use std::{
     error::Error,
     sync::{atomic::Ordering, Arc},
 };
-use anyhow::Result;
 use tauri::{
     include_image,
     menu::{CheckMenuItem, MenuBuilder, MenuItem, Submenu},
     tray::{MouseButton, MouseButtonState, TrayIcon, TrayIconBuilder, TrayIconEvent},
     App, AppHandle, Manager,
 };
+use tauri_plugin_dialog::DialogExt;
 use tauri_plugin_store::{Store, StoreExt};
 
 use crate::{
-    AppState, hotkey::{register_capture_hotkey, unregister_capture_hotkey}, i18n, qr_reader::process_qr, misc::wrap_anyhow
+    hotkey::{register_capture_hotkey, unregister_capture_hotkey},
+    i18n,
+    misc::wrap_anyhow,
+    qr_maker,
+    qr_reader::process_qr,
+    AppState,
 };
 
 const OPEN_BROWSER_PREFERENCE_DEFAULT: bool = true;
@@ -26,8 +33,19 @@ pub fn setup_tray(app: &App) -> Result<(), Box<dyn Error>> {
         true,
         Some("Command+Shift+1"),
     )?;
+    let qrcode_maker_i = MenuItem::with_id(
+        app,
+        "qrcode_maker",
+        i18n::translate(app.handle(), "tray.qrcode_maker"),
+        true,
+        Option::<&str>::None,
+    )?;
 
-    let preference_open_browser = get_stored_bool_value(app.handle(), "open_browser", OPEN_BROWSER_PREFERENCE_DEFAULT);
+    let preference_open_browser = get_stored_bool_value(
+        app.handle(),
+        "open_browser",
+        OPEN_BROWSER_PREFERENCE_DEFAULT,
+    );
     app.state::<AppState>()
         .open_browser
         .store(preference_open_browser, Ordering::Relaxed);
@@ -39,7 +57,11 @@ pub fn setup_tray(app: &App) -> Result<(), Box<dyn Error>> {
         preference_open_browser,
         None::<&str>,
     )?;
-    let preference_enable_hotkey = get_stored_bool_value(app.handle(),"enable_hotkey", ENABLE_CAPTURE_HOTKEY_PREFERENCE_DEFAULT);
+    let preference_enable_hotkey = get_stored_bool_value(
+        app.handle(),
+        "enable_hotkey",
+        ENABLE_CAPTURE_HOTKEY_PREFERENCE_DEFAULT,
+    );
     if preference_enable_hotkey {
         register_capture_hotkey(app.handle()).unwrap();
     }
@@ -60,6 +82,7 @@ pub fn setup_tray(app: &App) -> Result<(), Box<dyn Error>> {
 
     let menu = MenuBuilder::new(app)
         .item(&scan_i)
+        .item(&qrcode_maker_i)
         .separator()
         .item(&preferences_i)
         .separator()
@@ -75,6 +98,13 @@ pub fn setup_tray(app: &App) -> Result<(), Box<dyn Error>> {
         .menu(&menu)
         .on_menu_event(move |app, event| match event.id.as_ref() {
             "scan" => process_qr(app),
+            "qrcode_maker" => {
+                if let Err(e) = qr_maker::show_window(app) {
+                    error!("Failed to open QR Code Maker: {e:?}");
+                    app.dialog()
+                        .message(i18n::translate(app, "dialog.cannot_open_qr_maker"));
+                }
+            }
             "open_browser" => {
                 if let Ok(store) = get_store(app) {
                     let preference_open_browser = open_browser_i
