@@ -1,10 +1,14 @@
+use std::{cell::OnceCell, sync::OnceLock};
+
 use anyhow::Result;
 use image::{ImageBuffer, ImageFormat, Luma, Rgb};
 use qrcode::{types::QrError, EcLevel, QrCode};
 use serde::{Deserialize, Serialize};
-use tauri::{AppHandle, WebviewUrl, WebviewWindowBuilder};
+use tauri::{AppHandle, WebviewUrl, WebviewWindow, WebviewWindowBuilder, WindowEvent};
 
-pub fn create_window(app: &AppHandle) -> Result<()> {
+static QR_CODE_MAKER_WINDOW: OnceLock<WebviewWindow> = OnceLock::new();
+
+fn create_window(app: &AppHandle) -> Result<()> {
     let window = WebviewWindowBuilder::new(app, "qr_maker", WebviewUrl::App("index.html".into()))
         .title("QR Code Maker")
         .inner_size(
@@ -13,7 +17,27 @@ pub fn create_window(app: &AppHandle) -> Result<()> {
         )
         .resizable(false)
         .center()
+        .devtools(cfg!(debug_assertions))
         .build()?;
+    let cloned_window = window.clone();
+    cloned_window.on_window_event(move |e| match e {
+        WindowEvent::CloseRequested { api, .. } => {
+            window.hide().unwrap();
+            api.prevent_close();
+        }
+        _ => {}
+    });
+    QR_CODE_MAKER_WINDOW.set(cloned_window).unwrap();
+    Ok(())
+}
+
+pub fn show_window(app: &AppHandle) -> Result<()> {
+    if QR_CODE_MAKER_WINDOW.get().is_none() {
+        create_window(app)?;
+    }
+    let window = QR_CODE_MAKER_WINDOW.get().unwrap();
+    window.show()?;
+    window.set_focus()?;
     Ok(())
 }
 
