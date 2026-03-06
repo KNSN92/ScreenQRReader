@@ -1,4 +1,4 @@
-use std::{cell::OnceCell, sync::OnceLock};
+use std::sync::OnceLock;
 
 use anyhow::Result;
 use image::{ImageBuffer, ImageFormat, Luma, Rgb};
