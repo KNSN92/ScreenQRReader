@@ -3,23 +3,32 @@ import { cn } from "../../libs/cn";
 
 interface Props {
   variant: "primary" | "secondary";
+  disabled?: boolean;
   className?: string;
   onClick?: () => void;
   children: ReactNode;
 }
 
-export function Button({ variant, className, onClick, children }: Props) {
+export function Button({
+  variant,
+  disabled,
+  className,
+  onClick,
+  children,
+}: Props) {
   return (
     <button
       className={cn(
-        "flex gap-4 items-center justify-center w-full h-16 rounded-xl text-4xl text-text-primary cursor-pointer shadow-md shadow-black/20",
+        "flex gap-4 items-center justify-center w-full h-16 rounded-xl text-4xl text-text-primary cursor-pointer transition shadow-md shadow-black/20",
         {
-          "bg-primary": variant === "primary",
-          "bg-fg": variant === "secondary",
+          "bg-primary hover:bg-primary-dark disabled:bg-primary-dark":
+            variant === "primary",
+          "bg-fg hover:bg-fg-dark disabled:bg-fg-dark": variant === "secondary",
         },
         className,
       )}
       onClick={onClick}
+      disabled={disabled}
     >
       {children}
     </button>
