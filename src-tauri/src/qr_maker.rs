@@ -15,7 +15,7 @@ fn create_window(app: &AppHandle) -> Result<()> {
             1024.,
             768. + if cfg!(target_os = "macos") { 27.5 } else { 0. },
         )
-        .resizable(false)
+        .resizable(cfg!(debug_assertions))
         .center()
         .devtools(cfg!(debug_assertions))
         .build()?;
