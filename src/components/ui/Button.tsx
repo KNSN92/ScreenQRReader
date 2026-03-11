@@ -19,7 +19,7 @@ export function Button({
   return (
     <button
       className={cn(
-        "flex gap-4 items-center justify-center w-full h-16 rounded-xl text-4xl text-text-primary cursor-pointer transition shadow-md shadow-black/20",
+        "flex gap-4 items-center justify-center w-full h-16 rounded-xl text-4xl text-text-primary enabled:cursor-pointer transition shadow-md shadow-black/20",
         {
           "bg-primary hover:bg-primary-dark disabled:bg-primary-dark":
             variant === "primary",
