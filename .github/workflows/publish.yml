@@ -22,6 +22,8 @@ jobs:
           # - platform: 'windows-latest'
           #   args: ''
 
+    environment: Deploy
+
     runs-on: ${{ matrix.platform }}
     steps:
       - uses: actions/checkout@v4
