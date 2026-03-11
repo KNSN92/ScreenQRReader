@@ -1,6 +1,6 @@
 [package]
 name = "ScreenQRReader"
-version = "0.1.2"
+version = "0.1.1"
 description = "This application can scan a qr code on the screen."
 authors = ["KNSN92"]
 edition = "2021"
