@@ -29,6 +29,18 @@
     "resources": ["i18n/*"],
     "macOS": {
       "signingIdentity": "-"
+    },
+    "createUpdaterArtifacts": true
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDA2OTg2M0MyQjAzQTEzN0MKUldSOEV6cXd3bU9ZQnIyNXg5UEFHWXFNOUFUODdENHpIS1cvTTZsMXAzd2ovOHdqa3dJa2lzMk4K",
+      "endpoints": [
+        "https://github.com/KNSN92/ScreenQRReader/releases/latest/download/latest.json"
+      ],
+      "windows": {
+        "installMode": "passive"
+      }
     }
   }
 }
