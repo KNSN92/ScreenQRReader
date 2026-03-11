@@ -8,7 +8,8 @@
     "linux"
   ],
   "windows": [
-    "qr_maker"
+    "qr_maker",
+    "updater"
   ],
   "permissions": [
     "core:default",

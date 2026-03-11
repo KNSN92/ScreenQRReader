@@ -9,6 +9,9 @@ switch (label) {
   case "qr_maker":
     App = (await import("./window/qr_maker")).App;
     break;
+  case "updater":
+    App = (await import("./window/updater")).App;
+    break;
   default:
     App = () => <div>Unknown window</div>;
     break;

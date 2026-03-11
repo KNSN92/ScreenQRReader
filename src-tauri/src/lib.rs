@@ -6,7 +6,10 @@ use tauri::{App, Manager};
 use tauri_plugin_global_shortcut::{Modifiers, Shortcut};
 use tray::setup_tray;
 
-use crate::qr_maker::{generate_qrcode, validate_qrcode};
+use crate::{
+    qr_maker::{generate_qrcode, validate_qrcode},
+    updater::check_update,
+};
 
 mod hotkey;
 mod i18n;
@@ -15,6 +18,7 @@ mod qr_maker;
 mod qr_reader;
 mod screenshot;
 mod tray;
+mod updater;
 
 pub struct AppState {
     pub capturing: AtomicBool,
@@ -25,7 +29,7 @@ pub struct AppState {
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
-.plugin(tauri_plugin_process::init())
+        .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(
             tauri_plugin_log::Builder::new()
@@ -42,6 +46,7 @@ pub fn run() {
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_opener::init())
         .setup(|app| {
+            tauri::async_runtime::spawn(check_update(app.handle().clone()));
             setup(app)?;
             setup_tray(app)?;
             info!("Setup completed");
