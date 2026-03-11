@@ -14,6 +14,8 @@
     "core:default",
     "opener:default",
     "shell:default",
-    "notification:default"
+    "notification:default",
+    "updater:default",
+    "core:window:allow-close"
   ]
 }
