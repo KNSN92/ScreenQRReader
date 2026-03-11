@@ -68,6 +68,5 @@ fn setup(app: &mut App) -> Result<()> {
         app.set_dock_visibility(false);
     }
     i18n::initialize(app.handle());
-    qr_maker::create_window(app.handle())?;
     Ok(())
 }
