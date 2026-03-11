@@ -14,7 +14,7 @@ import { Updater, useImmer } from "use-immer";
 
 type UpdaterStatus = "available" | "installing" | "installed" | "failed";
 
-export function App() {
+export function UpdaterView() {
   const [update, setUpdate] = useState<Update | null>(null);
 
   useEffect(() => {
@@ -230,6 +230,7 @@ function installUpdate(
   });
 }
 
+// @ts-ignore - for debug
 function __debug__simulateInstallUpdate(
   setUpdateStatus: (status: UpdaterStatus) => void,
   setUpdatingInfo: Updater<UpdatingInfo | null>,

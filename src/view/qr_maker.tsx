@@ -61,7 +61,7 @@ type QRCodeMakerOptions = GenQRCodeOptions & {
   };
 };
 
-export function App() {
+export function QRMakerView() {
   const [qrcodeOption, setQRCodeOption] = useImmer<QRCodeMakerOptions>({
     type: "canvas",
     width: 400,
