@@ -4,14 +4,14 @@ import {
   GenQRCodeOptions,
   QRError,
   ValidateQRCodeResponse,
-} from "./libs/qrcode";
-import { cssColorToHex } from "./libs/color";
+} from "../libs/qrcode";
+import { cssColorToHex } from "../libs/color";
 import { useDebouncedCallback } from "use-debounce";
-import { QRCode } from "./components/QRCode";
-import { TextField } from "./components/ui/TextField";
-import { Selector } from "./components/ui/Selector";
-import { TextArea } from "./components/ui/TextArea";
-import { QRCodeStatus } from "./components/QRCodeStatus";
+import { QRCode } from "../components/QRCode";
+import { TextField } from "../components/ui/TextField";
+import { Selector } from "../components/ui/Selector";
+import { TextArea } from "../components/ui/TextArea";
+import { QRCodeStatus } from "../components/QRCodeStatus";
 
 import ChevronDownIcon from "@heroicons/react/24/solid/ChevronDownIcon";
 import ArrowDownTrayIcon from "@heroicons/react/24/solid/ArrowDownTrayIcon";
@@ -23,8 +23,8 @@ import {
   DrawType,
   Gradient,
 } from "qr-code-styling";
-import { Icon } from "./components/Icon";
-import { Button } from "./components/ui/Button";
+import { Icon } from "../components/Icon";
+import { Button } from "../components/ui/Button";
 
 type QRCodeMakerOptions = GenQRCodeOptions & {
   type: DrawType;
