@@ -236,7 +236,19 @@ export function QRMakerView() {
             onChange={(value) =>
               setQRCodeOption((options) => {
                 options.dotsOptions = options.dotsOptions || {};
-                options.dotsOptions.type = value as DotType;
+                const dotType = value as DotType;
+                options.dotsOptions.type = dotType;
+                if (dotType === "dots") {
+                  if (options.cornersDotOptions.type == null)
+                    options.cornersDotOptions.type = "rounded";
+                  if (options.cornersSquareOptions.type == null)
+                    options.cornersSquareOptions.type = "rounded";
+                } else if (qrcodeOption.dotsOptions.type === "dots") {
+                  if (options.cornersDotOptions.type == "rounded")
+                    options.cornersDotOptions.type = undefined;
+                  if (options.cornersSquareOptions.type == "rounded")
+                    options.cornersSquareOptions.type = undefined;
+                }
               })
             }
             className="w-64"
