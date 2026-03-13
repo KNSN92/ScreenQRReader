@@ -78,6 +78,7 @@ export function QRMakerView() {
   });
   const [eccLevel, setEccLevel] = useState<"L" | "M" | "Q" | "H">("M");
   const [text, setText] = useState("");
+  const [margin, setMargin] = useState(20);
   const handleTextChange = useDebouncedCallback((text: string) => {
     setText(text);
   }, 500);
@@ -149,11 +150,18 @@ export function QRMakerView() {
             </label>
             <TextField
               id="margin"
-              value={qrcodeOption.margin.toString() + "px"}
+              value={margin + "%"}
               onInputFinish={(value) =>
                 setQRCodeOption((options) => {
-                  const size = parseInt(value);
+                  const merginPercent = Math.min(
+                    50,
+                    Math.max(0, parseInt(value)),
+                  );
+                  const size = (qrcodeOption.width * merginPercent) / 100;
+                  console.log(size);
+
                   if (isNaN(size)) return;
+                  setMargin(merginPercent);
                   options.margin = size;
                 })
               }
