@@ -8,6 +8,8 @@
     --color-text-secondary: #888;
     --color-primary: #08f;
     --color-primary-dark: #06c;
+    --color-danger: #f44;
+    --color-danger-dark: #c00;
 }
 
 @keyframes loading-lu {

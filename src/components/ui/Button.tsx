@@ -2,7 +2,7 @@ import { ReactNode } from "react";
 import { cn } from "../../libs/cn";
 
 interface Props {
-  variant: "primary" | "secondary";
+  variant: "primary" | "secondary" | "danger";
   disabled?: boolean;
   className?: string;
   onClick?: () => void;
@@ -24,6 +24,8 @@ export function Button({
           "bg-primary hover:bg-primary-dark disabled:bg-primary-dark":
             variant === "primary",
           "bg-fg hover:bg-fg-dark disabled:bg-fg-dark": variant === "secondary",
+          "bg-danger hover:bg-danger-dark disabled:bg-danger-dark":
+            variant === "danger",
         },
         className,
       )}
