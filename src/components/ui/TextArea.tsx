@@ -14,7 +14,7 @@ export function TextArea({ placeholder, value, onChange, className }: Props) {
       value={value}
       onChange={(e) => onChange?.(e.target.value)}
       className={cn(
-        "w-full h-34 px-4 py-2.5 overflow-y-scroll rounded-lg bg-fg text-2xl text-text-primary placeholder:text-text-secondary resize-none shadow-md shadow-black/20",
+        "w-full min-h-34 px-4 py-2.5 overflow-y-scroll rounded-lg bg-fg text-2xl text-text-primary placeholder:text-text-secondary resize-none shadow-md shadow-black/20",
         className,
       )}
     />
