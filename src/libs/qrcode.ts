@@ -89,7 +89,7 @@ function isOnlyAscii(str: string): boolean {
   return /^[\x00-\x7F]*$/.test(str);
 }
 
-export type ValidateQRCodeResponse = "Valid" | "Invalid" | { error: "InvalidImage" | "ScanError" };
+export type ValidateQRCodeResponse = "Valid" | "Invalid" | "InvalidImage" | "ScanError";
 
 export async function validateQRCode(data: Uint8Array, image: Uint8Array): Promise<ValidateQRCodeResponse> {
   return await invoke("validate_qrcode", { payload: { data, image } });

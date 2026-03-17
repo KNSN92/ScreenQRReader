@@ -116,7 +116,8 @@ pub fn generate_qrcode(payload: GenerateQRCodePayload) -> GenerateQRCodeResponse
 pub enum ValidateQRCodeResponse {
     Valid,
     Invalid,
-    Error(String),
+    InvalidImage,
+    ScanError,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -130,7 +131,7 @@ pub fn validate_qrcode(payload: ValidateQRCodePayload) -> ValidateQRCodeResponse
     let qr_img = image::load_from_memory_with_format(&payload.image, ImageFormat::Png);
     let qr_img = match qr_img {
         Ok(img) => img.to_luma8(),
-        Err(_) => return ValidateQRCodeResponse::Error("InvalidImage".to_string()),
+        Err(_) => return ValidateQRCodeResponse::InvalidImage,
     };
     test_qrcode(qr_img, payload.data)
 }
@@ -161,7 +162,7 @@ fn test_qrcode(qr_img: ImageBuffer<Luma<u8>, Vec<u8>>, data: Vec<u8>) -> Validat
     let (img_width, img_height) = qr_img.dimensions();
     let results = scanner.scan_y800(qr_img.into_raw(), img_width, img_height);
     let mut results = if let Err(_) = results {
-        return ValidateQRCodeResponse::Error("ScanError".to_string());
+        return ValidateQRCodeResponse::ScanError;
     } else {
         results.unwrap()
     };
