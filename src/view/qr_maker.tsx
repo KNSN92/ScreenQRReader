@@ -14,6 +14,7 @@ import { TextArea } from "../components/ui/TextArea";
 import { QRCodeStatus } from "../components/QRCodeStatus";
 
 import ChevronDownIcon from "@heroicons/react/24/solid/ChevronDownIcon";
+import ChevronUpIcon from "@heroicons/react/24/solid/ChevronUpIcon";
 import ArrowDownTrayIcon from "@heroicons/react/24/solid/ArrowDownTrayIcon";
 
 import {
@@ -79,6 +80,7 @@ export function QRMakerView() {
   const [eccLevel, setEccLevel] = useState<"L" | "M" | "Q" | "H">("M");
   const [text, setText] = useState("");
   const [margin, setMargin] = useState(20);
+  const [isAdvancedOptionsOpen, setIsAdvancedOptionsOpen] = useState(false);
   const handleTextChange = useDebouncedCallback((text: string) => {
     setText(text);
   }, 500);
@@ -123,7 +125,7 @@ export function QRMakerView() {
           placeholder="https://example.com"
           onChange={handleTextChange}
         />
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-4 overflow-y-scroll">
           <div className="flex justify-between">
             <label className="text-3xl text-text-primary" htmlFor="ecc-level">
               Ecc Level
@@ -217,46 +219,54 @@ export function QRMakerView() {
               />
             </div>
           </div>
-        </div>
-        <div className="flex justify-between">
-          <label className="text-3xl text-text-primary" htmlFor="dots-style">
-            Dots Style
-          </label>
-          <Selector
-            id="dots-style"
-            items={[
-              { label: "Square", value: "square" },
-              { label: "Dots", value: "dots" },
-              { label: "Rounded", value: "rounded" },
-              { label: "Extra Rounded", value: "extra-rounded" },
-              { label: "Classy", value: "classy" },
-              { label: "Classy Rounded", value: "classy-rounded" },
-            ]}
-            value={qrcodeOption.dotsOptions.type}
-            onChange={(value) =>
-              setQRCodeOption((options) => {
-                options.dotsOptions = options.dotsOptions || {};
-                const dotType = value as DotType;
-                options.dotsOptions.type = dotType;
-                if (dotType === "dots") {
-                  if (options.cornersDotOptions.type == null)
-                    options.cornersDotOptions.type = "rounded";
-                  if (options.cornersSquareOptions.type == null)
-                    options.cornersSquareOptions.type = "rounded";
-                } else if (qrcodeOption.dotsOptions.type === "dots") {
-                  if (options.cornersDotOptions.type == "rounded")
-                    options.cornersDotOptions.type = undefined;
-                  if (options.cornersSquareOptions.type == "rounded")
-                    options.cornersSquareOptions.type = undefined;
-                }
-              })
-            }
-            className="w-64"
-          />
-        </div>
-        <div className="flex items-center justify-start gap-4 py-4 text-2xl text-primary cursor-pointer">
-          Advanced Options
-          <ChevronDownIcon className="w-6 h-6 scale-125" />
+          <div className="flex justify-between">
+            <label className="text-3xl text-text-primary" htmlFor="dots-style">
+              Dots Style
+            </label>
+            <Selector
+              id="dots-style"
+              items={[
+                { label: "Square", value: "square" },
+                { label: "Dots", value: "dots" },
+                { label: "Rounded", value: "rounded" },
+                { label: "Extra Rounded", value: "extra-rounded" },
+                { label: "Classy", value: "classy" },
+                { label: "Classy Rounded", value: "classy-rounded" },
+              ]}
+              value={qrcodeOption.dotsOptions.type}
+              onChange={(value) =>
+                setQRCodeOption((options) => {
+                  options.dotsOptions = options.dotsOptions || {};
+                  const dotType = value as DotType;
+                  options.dotsOptions.type = dotType;
+                  if (dotType === "dots") {
+                    if (options.cornersDotOptions.type == null)
+                      options.cornersDotOptions.type = "rounded";
+                    if (options.cornersSquareOptions.type == null)
+                      options.cornersSquareOptions.type = "rounded";
+                  } else if (qrcodeOption.dotsOptions.type === "dots") {
+                    if (options.cornersDotOptions.type == "rounded")
+                      options.cornersDotOptions.type = undefined;
+                    if (options.cornersSquareOptions.type == "rounded")
+                      options.cornersSquareOptions.type = undefined;
+                  }
+                })
+              }
+              className="w-64"
+            />
+          </div>
+          <button
+            onClick={() => setIsAdvancedOptionsOpen(!isAdvancedOptionsOpen)}
+            className="w-fit flex items-center justify-start gap-4 py-4 text-2xl text-primary cursor-pointer"
+          >
+            Advanced Options
+            {isAdvancedOptionsOpen ? (
+              <ChevronUpIcon className="w-6 h-6 scale-125" />
+            ) : (
+              <ChevronDownIcon className="w-6 h-6 scale-125" />
+            )}
+          </button>
+          {isAdvancedOptionsOpen && <div className="relative w-full"></div>}
         </div>
       </div>
       <div className="w-1 h-full rounded-full bg-text-secondary" />
