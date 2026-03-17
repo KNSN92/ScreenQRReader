@@ -303,7 +303,7 @@ export function QRMakerView() {
           </div>
         </div>
         {/* TODO: ダウンロード出来るようにする */}
-        <Button variant="secondary">
+        <Button variant="primary">
           <ArrowDownTrayIcon className="w-10" />
           Save
         </Button>
