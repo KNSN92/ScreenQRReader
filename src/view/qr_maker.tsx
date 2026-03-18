@@ -366,6 +366,7 @@ export function QRMakerView() {
             <label className="text-3xl text-text-primary" htmlFor="format">
               Format
             </label>
+            {/* TODO: formatセレクタを開いた際に下にはみ出してしまう問題を修正したい */}
             <Selector
               id="format"
               items={[
