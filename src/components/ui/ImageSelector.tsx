@@ -4,15 +4,17 @@ import { open } from "@tauri-apps/plugin-dialog";
 import TrashIcon from "@heroicons/react/24/solid/TrashIcon";
 import DocumentMagnifyingGlassIcon from "@heroicons/react/24/solid/DocumentMagnifyingGlassIcon";
 import { Button } from "./Button";
+import { Icon } from "../Icon";
 
 interface Props {
   imgUrl?: string;
   onChange?: (value: string | null) => void;
   id?: string;
+  disabled?: boolean;
   className?: string;
 }
 
-export function ImageSelector({ imgUrl, onChange }: Props) {
+export function ImageSelector({ imgUrl, onChange, disabled }: Props) {
   function handleSelectImage() {
     open({
       title: "Select an image",
@@ -30,16 +32,29 @@ export function ImageSelector({ imgUrl, onChange }: Props) {
     });
   }
   return (
-    <div className="group relative w-64 h-44 rounded-lg bg-black shadow-md shadow-black/20 overflow-hidden">
+    <div
+      className="group relative w-64 h-44 rounded-lg bg-black shadow-md shadow-black/20 overflow-hidden"
+      aria-disabled={disabled}
+    >
       {imgUrl == null ? (
         <button
-          className="flex flex-col items-center justify-center gap-2 size-full cursor-pointer"
+          className="flex flex-col items-center justify-center gap-2 size-full enabled:cursor-pointer"
           onClick={handleSelectImage}
+          disabled={disabled}
         >
-          <DocumentMagnifyingGlassIcon className="h-10.5 text-text-primary" />
-          <span className="w-full px-2 text-center text-2xl text-text-primary whitespace-nowrap overflow-hidden text-ellipsis">
-            Select an image
-          </span>
+          {disabled ? (
+            <Icon
+              className="w-16 aspect-square"
+              shapeClassName="fill-text-secondary"
+            />
+          ) : (
+            <>
+              <DocumentMagnifyingGlassIcon className="h-10.5 fill-text-primary! aria-disabled:hidden" />
+              <span className="w-full px-2 text-center text-2xl text-text-primary aria-disabled:hidden whitespace-nowrap overflow-hidden text-ellipsis">
+                Select an image
+              </span>
+            </>
+          )}
         </button>
       ) : (
         <>
@@ -56,6 +71,7 @@ export function ImageSelector({ imgUrl, onChange }: Props) {
               <Button
                 variant="danger"
                 onClick={() => onChange?.(null)}
+                disabled={disabled}
                 className="size-10 rounded-lg"
               >
                 <TrashIcon className="w-4.5" />
@@ -63,6 +79,7 @@ export function ImageSelector({ imgUrl, onChange }: Props) {
               <Button
                 variant="secondary"
                 onClick={handleSelectImage}
+                disabled={disabled}
                 className="size-10 rounded-lg"
               >
                 <DocumentMagnifyingGlassIcon className="h-6" />
