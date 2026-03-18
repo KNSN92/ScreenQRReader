@@ -5,16 +5,21 @@ import TrashIcon from "@heroicons/react/24/solid/TrashIcon";
 import DocumentMagnifyingGlassIcon from "@heroicons/react/24/solid/DocumentMagnifyingGlassIcon";
 import { Button } from "./Button";
 import { Icon } from "../Icon";
+import { cn } from "../../libs/cn";
 
 interface Props {
   imgUrl?: string;
   onChange?: (value: string | null) => void;
-  id?: string;
   disabled?: boolean;
   className?: string;
 }
 
-export function ImageSelector({ imgUrl, onChange, disabled }: Props) {
+export function ImageSelector({
+  imgUrl,
+  onChange,
+  disabled,
+  className,
+}: Props) {
   function handleSelectImage() {
     open({
       title: "Select an image",
@@ -33,7 +38,10 @@ export function ImageSelector({ imgUrl, onChange, disabled }: Props) {
   }
   return (
     <div
-      className="group relative w-64 h-44 rounded-lg bg-black shadow-md shadow-black/20 overflow-hidden"
+      className={cn(
+        "group relative w-64 h-44 rounded-lg bg-black shadow-md shadow-black/20 overflow-hidden",
+        className,
+      )}
       aria-disabled={disabled}
     >
       {imgUrl == null ? (
