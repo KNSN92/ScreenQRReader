@@ -16,6 +16,7 @@ fn create_window(app: &AppHandle) -> Result<()> {
             768. + if cfg!(target_os = "macos") { 27.5 } else { 0. },
         )
         .resizable(cfg!(debug_assertions))
+        .visible_on_all_workspaces(true)
         .center()
         .devtools(cfg!(debug_assertions))
         .build()?;
@@ -36,6 +37,7 @@ pub fn show_window(app: &AppHandle) -> Result<()> {
         create_window(app)?;
     }
     let window = QR_CODE_MAKER_WINDOW.get().unwrap();
+    window.center()?;
     window.show()?;
     window.set_focus()?;
     Ok(())
