@@ -50,7 +50,7 @@ export function ImageSelector({ imgUrl, onChange }: Props) {
           />
           <div className="absolute inset-0 opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center gap-3 size-full bg-black/50 transition-all">
             <span className="w-full px-2 text-center text-xl text-text-primary whitespace-nowrap overflow-hidden text-ellipsis">
-              {imgUrl.split("/").pop()}
+              {decodeURIComponent(imgUrl).split("/").pop()}
             </span>
             <div className="flex gap-3">
               <Button
