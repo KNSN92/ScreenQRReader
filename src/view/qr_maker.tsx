@@ -115,17 +115,20 @@ export function QRMakerView() {
       break;
   }
   return (
-    <div className="flex size-full py-4 bg-bg">
-      <div className="w-full flex flex-col gap-4 px-4">
+    <div className="flex size-full pt-4 bg-bg">
+      <div className="w-full flex flex-col gap-4 pl-4">
         <header className="flex gap-4">
           <Icon className="w-12 aspect-square" shapeClassName="fill-white" />
           <h1 className="text-text-primary text-5xl font-bold">QRCode Maker</h1>
         </header>
+        <div className="w-full h-fit pr-4">
         <TextArea
           placeholder="https://example.com"
           onChange={handleTextChange}
+            className="mr-4"
         />
-        <div className="flex flex-col gap-4 overflow-y-scroll">
+        </div>
+        <div className="h-full pr-4 flex flex-col gap-4 overflow-y-scroll">
           <div className="flex justify-between">
             <label className="text-3xl text-text-primary" htmlFor="ecc-level">
               Ecc Level
