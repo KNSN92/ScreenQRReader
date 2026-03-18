@@ -26,6 +26,8 @@ import {
 } from "qr-code-styling";
 import { Icon } from "../components/Icon";
 import { Button } from "../components/ui/Button";
+import { ImageSelector } from "../components/ui/ImageSelector";
+import { Checkbox } from "../components/ui/Checkbox";
 
 type QRCodeMakerOptions = GenQRCodeOptions & {
   type: DrawType;
@@ -33,11 +35,10 @@ type QRCodeMakerOptions = GenQRCodeOptions & {
   height: number;
   margin: number;
   imageOptions: {
-    saveAsBlob?: boolean;
-    hideBackgroundDots?: boolean;
-    imageSize?: number;
-    crossOrigin?: string;
-    margin?: number;
+    hideBackgroundDots: boolean;
+    imageSize: number;
+    crossOrigin: string;
+    margin: number;
   };
   dotsOptions: {
     type: DotType;
@@ -75,7 +76,12 @@ export function QRMakerView() {
     },
     cornersDotOptions: {},
     cornersSquareOptions: {},
-    imageOptions: {},
+    imageOptions: {
+      crossOrigin: "anonymous",
+      margin: 0,
+      imageSize: 0.5,
+      hideBackgroundDots: false,
+    },
   });
   const [eccLevel, setEccLevel] = useState<"L" | "M" | "Q" | "H">("M");
   const [text, setText] = useState("");
@@ -122,13 +128,13 @@ export function QRMakerView() {
           <h1 className="text-text-primary text-5xl font-bold">QRCode Maker</h1>
         </header>
         <div className="w-full h-fit pr-4">
-        <TextArea
-          placeholder="https://example.com"
-          onChange={handleTextChange}
+          <TextArea
+            placeholder="https://example.com"
+            onChange={handleTextChange}
             className="mr-4"
-        />
+          />
         </div>
-        <div className="h-full pr-4 flex flex-col gap-4 overflow-y-scroll">
+        <div className="h-full pr-4 pb-4 flex flex-col gap-4 overflow-y-scroll">
           <div className="flex justify-between">
             <label className="text-3xl text-text-primary" htmlFor="ecc-level">
               Ecc Level
@@ -158,15 +164,15 @@ export function QRMakerView() {
               value={margin + "%"}
               onInputFinish={(value) =>
                 setQRCodeOption((options) => {
-                  const merginPercent = Math.min(
+                  const marginPercent = Math.min(
                     50,
                     Math.max(0, parseInt(value)),
                   );
-                  const size = (qrcodeOption.width * merginPercent) / 100;
+                  const size = (qrcodeOption.width * marginPercent) / 100;
                   console.log(size);
 
                   if (isNaN(size)) return;
-                  setMargin(merginPercent);
+                  setMargin(marginPercent);
                   options.margin = size;
                 })
               }
@@ -269,11 +275,66 @@ export function QRMakerView() {
               <ChevronDownIcon className="w-6 h-6 scale-125" />
             )}
           </button>
-          {isAdvancedOptionsOpen && <div className="relative w-full"></div>}
+          {isAdvancedOptionsOpen && (
+            <div className="relative w-full flex flex-col gap-4">
+              <span className="text-4xl font-bold text-text-primary">
+                Image
+              </span>
+              <div className="flex justify-between">
+                <span className="text-3xl text-text-primary">File</span>
+                <ImageSelector
+                  imgUrl={qrcodeOption.image}
+                  onChange={(url) =>
+                    setQRCodeOption((draft) => {
+                      draft.image = url ?? undefined;
+                      return draft;
+                    })
+                  }
+                />
+              </div>
+              <div className="flex justify-between">
+                <span className="text-3xl text-text-primary">
+                  Background Dots
+                </span>
+                <Checkbox
+                  disabled
+                  value={!qrcodeOption.imageOptions.hideBackgroundDots}
+                  onChange={(value) =>
+                    setQRCodeOption((draft) => {
+                      draft.imageOptions.hideBackgroundDots = !value;
+                    })
+                  }
+                />
+              </div>
+              <div className="flex justify-between">
+                <label className="text-3xl text-text-primary" htmlFor="margin">
+                  Size
+                </label>
+                <TextField
+                  id="margin"
+                  value={qrcodeOption.imageOptions.imageSize * 100 + "%"}
+                  onInputFinish={(value) =>
+                    setQRCodeOption((options) => {
+                      console.log(options.imageOptions.imageSize, value);
+                      const imageSizePercent = Math.min(
+                        100,
+                        Math.max(0, parseInt(value)),
+                      );
+                      const imageSize = imageSizePercent / 100;
+
+                      if (isNaN(imageSize)) return;
+                      options.imageOptions.imageSize = imageSize;
+                      return options;
+                    })
+                  }
+                />
+              </div>
+            </div>
+          )}
         </div>
       </div>
       <div className="w-1 h-full rounded-full bg-text-secondary" />
-      <div className="flex flex-col justify-between w-full px-4">
+      <div className="flex flex-col justify-between w-full px-4 pb-4">
         <div className="w-full aspect-square">
           <QRCode
             text={text}
