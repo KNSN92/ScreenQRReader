@@ -33,7 +33,7 @@ export function QRCodeStatus({ status }: Props) {
       "bg-[#f88]/50 border-[#f88]":
         status === "invalid" || status === "too-long",
       "bg-[#888]/50 border-[#888]":
-        status === "empty" || status === "generating",
+        status === "empty" || status === "generating" || status === "error",
     },
   );
   return <div className={className}>{message}</div>;
