@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useImmer } from "use-immer";
 import {
+  genQRCode,
   GenQRCodeOptions,
   QRError,
   ValidateQRCodeResponse,
@@ -28,6 +29,8 @@ import { Icon } from "../components/Icon";
 import { Button } from "../components/ui/Button";
 import { ImageSelector } from "../components/ui/ImageSelector";
 import { Checkbox } from "../components/ui/Checkbox";
+import { save } from "@tauri-apps/plugin-dialog";
+import { writeFile } from "@tauri-apps/plugin-fs";
 
 type QRCodeMakerOptions = GenQRCodeOptions & {
   type: DrawType;
@@ -63,6 +66,8 @@ type QRCodeMakerOptions = GenQRCodeOptions & {
   };
 };
 
+type ImageFormat = "png" | "jpeg" | "svg";
+
 export function QRMakerView() {
   const [qrcodeOption, setQRCodeOption] = useImmer<QRCodeMakerOptions>({
     type: "canvas",
@@ -86,6 +91,7 @@ export function QRMakerView() {
   const [eccLevel, setEccLevel] = useState<"L" | "M" | "Q" | "H">("M");
   const [text, setText] = useState("");
   const [margin, setMargin] = useState(10);
+  const [format, setFormat] = useState<ImageFormat>("png");
   const [isAdvancedOptionsOpen, setIsAdvancedOptionsOpen] = useState(false);
   const handleTextChange = useDebouncedCallback((text: string) => {
     setText(text);
@@ -369,6 +375,8 @@ export function QRMakerView() {
             {/* TODO: formatセレクタを開いた際に下にはみ出してしまう問題を修正したい */}
             <Selector
               id="format"
+              value={format}
+              onChange={(value) => setFormat((value as ImageFormat) ?? "png")}
               items={[
                 { label: "png", value: "png" },
                 { label: "jpeg", value: "jpeg" },
@@ -378,11 +386,48 @@ export function QRMakerView() {
           </div>
         </div>
         {/* TODO: ダウンロード出来るようにする */}
-        <Button variant="primary">
+        <Button
+          variant="primary"
+          disabled={qrcodeStatus !== "valid"}
+          onClick={async () => {
+            const blob = await genQRCodeImageBlob(
+              text,
+              eccLevel,
+              qrcodeOption,
+              format,
+            );
+            if (typeof blob === "string") {
+              return;
+            }
+            const path = await save({
+              canCreateDirectories: true,
+              filters: [
+                {
+                  name: "Image Files",
+                  extensions: [format],
+                },
+              ],
+            });
+            if (path != null) writeFile(path, await blob.bytes());
+          }}
+        >
           <ArrowDownTrayIcon className="w-10" />
           Save
         </Button>
       </div>
     </div>
   );
+}
+
+async function genQRCodeImageBlob(
+  text: string,
+  eccLevel: "L" | "M" | "Q" | "H",
+  options: QRCodeMakerOptions,
+  format: "png" | "jpeg" | "svg",
+): Promise<QRError | Blob> {
+  const qrcode = await genQRCode(text, eccLevel, options);
+  if (typeof qrcode === "string") {
+    return qrcode;
+  }
+  return qrcode.getRawData(format);
 }
