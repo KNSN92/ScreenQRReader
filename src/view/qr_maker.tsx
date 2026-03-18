@@ -67,7 +67,7 @@ export function QRMakerView() {
     type: "canvas",
     width: 400,
     height: 400,
-    margin: 20,
+    margin: 40,
     backgroundOptions: { color: "#FFFFFF" },
     dotsOptions: {
       type: "square",
@@ -79,7 +79,7 @@ export function QRMakerView() {
   });
   const [eccLevel, setEccLevel] = useState<"L" | "M" | "Q" | "H">("M");
   const [text, setText] = useState("");
-  const [margin, setMargin] = useState(20);
+  const [margin, setMargin] = useState(10);
   const [isAdvancedOptionsOpen, setIsAdvancedOptionsOpen] = useState(false);
   const handleTextChange = useDebouncedCallback((text: string) => {
     setText(text);
