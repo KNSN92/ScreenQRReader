@@ -408,7 +408,8 @@ export function QRMakerView() {
                 },
               ],
             });
-            if (path != null) writeFile(path, await blob.bytes());
+            if (path != null)
+              writeFile(path, new Uint8Array(await blob.arrayBuffer()));
           }}
         >
           <ArrowDownTrayIcon className="w-10" />
