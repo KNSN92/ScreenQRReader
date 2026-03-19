@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useImmer } from "use-immer";
 import {
+  EcLevel,
   genQRCode,
   GenQRCodeOptions,
   QRError,
@@ -88,7 +89,7 @@ export function QRMakerView() {
       hideBackgroundDots: false,
     },
   });
-  const [ecLevel, setEcLevel] = useState<"L" | "M" | "Q" | "H">("M");
+  const [ecLevel, setEcLevel] = useState<EcLevel>("M");
   const [text, setText] = useState("");
   const [margin, setMargin] = useState(10);
   const [format, setFormat] = useState<ImageFormat>("png");
@@ -157,7 +158,7 @@ export function QRMakerView() {
               onChange={(value) => {
                 const isValid = value?.length === 1 && "LMQH".includes(value);
                 if (!isValid) return;
-                setEcLevel(value as "L" | "M" | "Q" | "H");
+                setEcLevel(value as EcLevel);
               }}
             />
           </div>
@@ -421,7 +422,7 @@ export function QRMakerView() {
 
 async function genQRCodeImageBlob(
   text: string,
-  ecLevel: "L" | "M" | "Q" | "H",
+  ecLevel: EcLevel,
   options: QRCodeMakerOptions,
   format: "png" | "jpeg" | "svg",
 ): Promise<QRError | Blob> {

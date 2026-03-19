@@ -3,9 +3,11 @@ import QRCodeStyling, { Options } from "qr-code-styling";
 
 const BOM = "\uFEFF";
 
+export type EcLevel = "L" | "M" | "Q" | "H";
+
 export interface QRPayload {
   text: string;
-  eclevel: "L" | "M" | "Q" | "H";
+  eclevel: EcLevel;
 }
 
 export interface QRCode {

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, useTransition } from "react";
 import {
+  EcLevel,
   genQRCode,
   GenQRCodeOptions,
   QRError,
@@ -11,7 +12,7 @@ import { Icon } from "./Icon";
 
 interface Props {
   text: string;
-  eclevel: "L" | "M" | "Q" | "H";
+  eclevel: EcLevel;
   options: GenQRCodeOptions;
   setQRCodeStatus?: (
     status:
