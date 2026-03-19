@@ -88,7 +88,7 @@ export function QRMakerView() {
       hideBackgroundDots: false,
     },
   });
-  const [eccLevel, setEccLevel] = useState<"L" | "M" | "Q" | "H">("M");
+  const [ecLevel, setEcLevel] = useState<"L" | "M" | "Q" | "H">("M");
   const [text, setText] = useState("");
   const [margin, setMargin] = useState(10);
   const [format, setFormat] = useState<ImageFormat>("png");
@@ -142,22 +142,22 @@ export function QRMakerView() {
         </div>
         <div className="h-full pr-4 pb-4 flex flex-col gap-4 overflow-y-scroll">
           <div className="flex justify-between">
-            <label className="text-3xl text-text-primary" htmlFor="ecc-level">
-              Ecc Level
+            <label className="text-3xl text-text-primary" htmlFor="ec-level">
+              Ec Level
             </label>
             <Selector
-              id="ecc-level"
+              id="ec-level"
               items={[
                 { label: "Low", value: "L" },
                 { label: "Medium", value: "M" },
                 { label: "Quartile", value: "Q" },
                 { label: "High", value: "H" },
               ]}
-              value={eccLevel}
+              value={ecLevel}
               onChange={(value) => {
                 const isValid = value?.length === 1 && "LMQH".includes(value);
                 if (!isValid) return;
-                setEccLevel(value as "L" | "M" | "Q" | "H");
+                setEcLevel(value as "L" | "M" | "Q" | "H");
               }}
             />
           </div>
@@ -303,7 +303,6 @@ export function QRMakerView() {
                   Background Dots
                 </span>
                 <Checkbox
-                  disabled
                   value={!qrcodeOption.imageOptions.hideBackgroundDots}
                   onChange={(value) =>
                     setQRCodeOption((draft) => {
@@ -344,7 +343,7 @@ export function QRMakerView() {
         <div className="w-full aspect-square">
           <QRCode
             text={text}
-            ecclevel={eccLevel}
+            eclevel={ecLevel}
             options={qrcodeOption}
             setQRCodeStatus={setQRCodeValidateResult}
           />
@@ -392,7 +391,7 @@ export function QRMakerView() {
           onClick={async () => {
             const blob = await genQRCodeImageBlob(
               text,
-              eccLevel,
+              ecLevel,
               qrcodeOption,
               format,
             );
@@ -422,11 +421,11 @@ export function QRMakerView() {
 
 async function genQRCodeImageBlob(
   text: string,
-  eccLevel: "L" | "M" | "Q" | "H",
+  ecLevel: "L" | "M" | "Q" | "H",
   options: QRCodeMakerOptions,
   format: "png" | "jpeg" | "svg",
 ): Promise<QRError | Blob> {
-  const qrcode = await genQRCode(text, eccLevel, options);
+  const qrcode = await genQRCode(text, ecLevel, options);
   if (typeof qrcode === "string") {
     return qrcode;
   }

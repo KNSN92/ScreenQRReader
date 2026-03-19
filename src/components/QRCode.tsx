@@ -11,7 +11,7 @@ import { Icon } from "./Icon";
 
 interface Props {
   text: string;
-  ecclevel: "L" | "M" | "Q" | "H";
+  eclevel: "L" | "M" | "Q" | "H";
   options: GenQRCodeOptions;
   setQRCodeStatus?: (
     status:
@@ -23,7 +23,7 @@ interface Props {
   ) => void;
 }
 
-export function QRCode({ text, ecclevel, options, setQRCodeStatus }: Props) {
+export function QRCode({ text, eclevel, options, setQRCodeStatus }: Props) {
   const previewRef = useRef<HTMLDivElement>(null);
   const [isGenerating, startGenerate] = useTransition();
   const [isEmpty, setIsEmpty] = useState(true);
@@ -42,7 +42,7 @@ export function QRCode({ text, ecclevel, options, setQRCodeStatus }: Props) {
 
     await wait(Math.random() * 500 + 500);
 
-    const qrcode = await genQRCode(text, ecclevel, options);
+    const qrcode = await genQRCode(text, eclevel, options);
     if (typeof qrcode === "string") {
       console.error(qrcode);
       setQRCodeStatus?.(qrcode);
@@ -66,7 +66,7 @@ export function QRCode({ text, ecclevel, options, setQRCodeStatus }: Props) {
 
   useEffect(() => {
     startGenerate(generate);
-  }, [text, ecclevel, options]);
+  }, [text, eclevel, options]);
   return (
     <>
       {(isGenerating || isEmpty) && (
