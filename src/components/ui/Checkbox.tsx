@@ -13,6 +13,7 @@ interface Props {
 export function Checkbox({ value, onChange, id, disabled, className }: Props) {
   return (
     <button
+      id={id}
       onClick={() => onChange?.(!value)}
       className={cn(
         "size-10 flex items-center justify-center rounded-lg shadow-md shadow-black/20 enabled:cursor-pointer transition-all",
