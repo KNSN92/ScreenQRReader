@@ -22,6 +22,7 @@ export function Checkbox({ value, onChange, id, disabled, className }: Props) {
             !value,
           "bg-primary hover:bg-primary-dark disabled:bg-primary-dark": value,
         },
+        className,
       )}
       disabled={disabled}
     >
