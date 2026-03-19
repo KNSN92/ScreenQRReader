@@ -22,6 +22,7 @@ export function Checkbox({ value, onChange, id, disabled, className }: Props) {
           "bg-primary hover:bg-primary-dark disabled:bg-primary-dark": value,
         },
       )}
+      disabled={disabled}
     >
       {value && <CheckIcon className="size-full p-1 fill-text-primary" />}
     </button>
