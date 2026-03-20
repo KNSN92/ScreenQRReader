@@ -385,7 +385,6 @@ export function QRMakerView() {
             />
           </div>
         </div>
-        {/* TODO: ダウンロード出来るようにする */}
         <Button
           variant="primary"
           disabled={qrcodeStatus !== "valid"}
