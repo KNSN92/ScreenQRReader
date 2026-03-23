@@ -6,7 +6,7 @@ use std::{
 };
 use tauri::{
     include_image,
-    menu::{CheckMenuItem, MenuBuilder, MenuItem, Submenu},
+    menu::{AboutMetadataBuilder, CheckMenuItem, MenuBuilder, MenuItem, Submenu},
     tray::{MouseButton, MouseButtonState, TrayIcon, TrayIconBuilder, TrayIconEvent},
     App, AppHandle, Manager,
 };
@@ -80,13 +80,25 @@ pub fn setup_tray(app: &App) -> Result<(), Box<dyn Error>> {
         &[&open_browser_i, &enable_hotkey_i],
     )?;
 
+    let about_metadata = AboutMetadataBuilder::new()
+        .name(Some(i18n::translate(app.handle(), "screen_qr_reader")))
+        .authors(Some(vec!["KNSN92".to_string()]))
+        .copyright(Some(format!(
+            "LGPL-2.1 License\n{}",
+            i18n::translate(app.handle(), "tray.about.qrcode_brand")
+        )))
+        .build();
+
     let menu = MenuBuilder::new(app)
         .item(&scan_i)
         .item(&qrcode_maker_i)
         .separator()
         .item(&preferences_i)
         .separator()
-        .about_with_text(i18n::translate(app.handle(), "tray.about"), None)
+        .about_with_text(
+            i18n::translate(app.handle(), "tray.about"),
+            Some(about_metadata),
+        )
         .separator()
         .quit_with_text(i18n::translate(app.handle(), "tray.quit"))
         .build()?;
