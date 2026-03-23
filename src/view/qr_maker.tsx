@@ -294,7 +294,6 @@ export function QRMakerView() {
                   onChange={(url) =>
                     setQRCodeOption((draft) => {
                       draft.image = url ?? undefined;
-                      return draft;
                     })
                   }
                 />
