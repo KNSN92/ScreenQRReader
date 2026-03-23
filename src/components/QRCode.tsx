@@ -50,7 +50,9 @@ export function QRCode({ text, eclevel, options, setQRCodeStatus }: Props) {
     } else {
       preview.innerHTML = "";
       qrcode.append(preview);
-      await wait(100);
+      if (qrcode._canvasDrawingPromise) {
+        await qrcode._canvasDrawingPromise;
+      }
       qrcode.update();
       setIsEmpty(false);
 
