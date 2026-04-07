@@ -21,6 +21,7 @@
     "process:allow-restart",
     "dialog:allow-open",
     "dialog:allow-save",
-    "fs:allow-app-write"
+    "fs:allow-app-write",
+    "log:allow-log"
   ]
 }
