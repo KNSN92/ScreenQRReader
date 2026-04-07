@@ -1,6 +1,9 @@
 use std::sync::atomic::Ordering;
 
-use crate::{i18n, screenshot, AppState};
+use crate::{
+    config::{load_cfg, ConfigKey},
+    i18n, screenshot, AppState,
+};
 use anyhow::Error;
 use log::{error, info, trace, warn};
 use tauri::{AppHandle, Manager};
@@ -64,10 +67,7 @@ pub fn process_qr(app: &AppHandle) {
 }
 
 async fn process_qr_inner(app_handle: &AppHandle) {
-    let open_browser = app_handle
-        .state::<AppState>()
-        .open_browser
-        .load(Ordering::Relaxed);
+    let open_browser = load_cfg(app_handle, ConfigKey::OpenBrowser);
     match scan_qr(app_handle).await {
         ScanResponse::Success(content) => {
             info!("Success! '{content}'");

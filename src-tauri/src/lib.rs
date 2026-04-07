@@ -11,6 +11,7 @@ use crate::{
     updater::check_update,
 };
 
+mod config;
 mod hotkey;
 mod i18n;
 mod misc;
@@ -23,7 +24,6 @@ mod updater;
 pub struct AppState {
     pub capturing: AtomicBool,
     pub read_qr_shortcut: Mutex<Shortcut>,
-    pub open_browser: AtomicBool,
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -65,7 +65,6 @@ fn setup(app: &mut App) -> Result<()> {
             Some(Modifiers::union(Modifiers::META, Modifiers::SHIFT)),
             tauri_plugin_global_shortcut::Code::Digit1,
         )),
-        open_browser: AtomicBool::new(false),
     });
     #[cfg(target_os = "macos")]
     {

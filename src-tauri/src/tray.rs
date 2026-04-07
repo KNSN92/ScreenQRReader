@@ -1,29 +1,20 @@
 use anyhow::Result;
 use log::error;
-use std::{
-    error::Error,
-    sync::{atomic::Ordering, Arc},
-};
+use std::error::Error;
 use tauri::{
     include_image,
     menu::{AboutMetadataBuilder, CheckMenuItem, MenuBuilder, MenuItem, Submenu},
     tray::{MouseButton, MouseButtonState, TrayIcon, TrayIconBuilder, TrayIconEvent},
-    App, AppHandle, Manager,
+    App,
 };
 use tauri_plugin_dialog::DialogExt;
-use tauri_plugin_store::{Store, StoreExt};
 
 use crate::{
+    config::{load_cfg, store_cfg, ConfigKey, ConfigValue},
     hotkey::{register_capture_hotkey, unregister_capture_hotkey},
-    i18n,
-    misc::wrap_anyhow,
-    qr_maker,
+    i18n, qr_maker,
     qr_reader::process_qr,
-    AppState,
 };
-
-const OPEN_BROWSER_PREFERENCE_DEFAULT: bool = true;
-const ENABLE_CAPTURE_HOTKEY_PREFERENCE_DEFAULT: bool = false;
 
 pub fn setup_tray(app: &App) -> Result<(), Box<dyn Error>> {
     let scan_i = MenuItem::with_id(
@@ -41,28 +32,17 @@ pub fn setup_tray(app: &App) -> Result<(), Box<dyn Error>> {
         Option::<&str>::None,
     )?;
 
-    let preference_open_browser = get_stored_bool_value(
-        app.handle(),
-        "open_browser",
-        OPEN_BROWSER_PREFERENCE_DEFAULT,
-    );
-    app.state::<AppState>()
-        .open_browser
-        .store(preference_open_browser, Ordering::Relaxed);
+    let open_browser = load_cfg(app.handle(), ConfigKey::OpenBrowser);
     let open_browser_i = CheckMenuItem::with_id(
         app,
         "open_browser",
         i18n::translate(app.handle(), "tray.open_browser"),
         true,
-        preference_open_browser,
+        open_browser,
         None::<&str>,
     )?;
-    let preference_enable_hotkey = get_stored_bool_value(
-        app.handle(),
-        "enable_hotkey",
-        ENABLE_CAPTURE_HOTKEY_PREFERENCE_DEFAULT,
-    );
-    if preference_enable_hotkey {
+    let read_qr_shortcut = load_cfg(app.handle(), ConfigKey::ReadQrShortcut);
+    if read_qr_shortcut {
         register_capture_hotkey(app.handle()).unwrap();
     }
     let enable_hotkey_i = CheckMenuItem::with_id(
@@ -70,7 +50,7 @@ pub fn setup_tray(app: &App) -> Result<(), Box<dyn Error>> {
         "enable_hotkey",
         i18n::translate(app.handle(), "tray.enable_hotkey"),
         true,
-        preference_enable_hotkey,
+        read_qr_shortcut,
         None::<&str>,
     )?;
     let preferences_i = Submenu::with_items(
@@ -118,33 +98,23 @@ pub fn setup_tray(app: &App) -> Result<(), Box<dyn Error>> {
                 }
             }
             "open_browser" => {
-                if let Ok(store) = get_store(app) {
-                    let preference_open_browser = open_browser_i
-                        .is_checked()
-                        .unwrap_or(OPEN_BROWSER_PREFERENCE_DEFAULT);
-                    app.state::<AppState>()
-                        .open_browser
-                        .store(preference_open_browser, Ordering::Relaxed);
-                    store.set(
-                        "open_browser",
-                        open_browser_i
-                            .is_checked()
-                            .unwrap_or(OPEN_BROWSER_PREFERENCE_DEFAULT),
-                    );
-                }
+                let open_browser_cfg = open_browser_i
+                    .is_checked()
+                    .map(ConfigValue::OpenBrowser)
+                    .unwrap_or(ConfigValue::default_value(ConfigKey::OpenBrowser));
+                store_cfg(app, open_browser_cfg);
             }
             "enable_hotkey" => {
-                let enable_hotkey = enable_hotkey_i
+                let enable_hotkey_cfg = enable_hotkey_i
                     .is_checked()
-                    .unwrap_or(ENABLE_CAPTURE_HOTKEY_PREFERENCE_DEFAULT);
-                if let Ok(store) = get_store(app) {
-                    store.set("enable_hotkey", enable_hotkey);
-                }
-                if enable_hotkey {
+                    .map(ConfigValue::ReadQrShortcut)
+                    .unwrap_or(ConfigValue::default_value(ConfigKey::ReadQrShortcut));
+                if enable_hotkey_cfg == ConfigValue::ReadQrShortcut(true) {
                     register_capture_hotkey(app).unwrap();
                 } else {
                     unregister_capture_hotkey(app).unwrap();
                 }
+                store_cfg(app, enable_hotkey_cfg);
             }
             _ => {}
         })
@@ -163,19 +133,5 @@ fn tray_icon_event(tray: &TrayIcon, event: TrayIconEvent) {
             process_qr(tray.app_handle());
         }
         _ => {}
-    }
-}
-
-fn get_store<R: tauri::Runtime>(app: &AppHandle<R>) -> Result<Arc<Store<R>>> {
-    wrap_anyhow(app.store("config.json"))
-}
-
-fn get_stored_bool_value<R: tauri::Runtime>(app: &AppHandle<R>, key: &str, default: bool) -> bool {
-    if let Ok(store) = get_store(app) {
-        store
-            .get(key)
-            .map_or(default, |v| v.as_bool().unwrap_or(default))
-    } else {
-        default
     }
 }
