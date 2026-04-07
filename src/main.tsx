@@ -8,7 +8,7 @@ function DefaultView() {
 }
 
 function View() {
-  const [View, setView] = React.useState<React.FC>(DefaultView);
+  const [View, setView] = React.useState<React.FC>(() => DefaultView);
   const label = getCurrentWindow().label;
   switch (label) {
     case "qr_maker":
