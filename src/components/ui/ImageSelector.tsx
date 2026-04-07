@@ -6,6 +6,7 @@ import DocumentMagnifyingGlassIcon from "@heroicons/react/24/solid/DocumentMagni
 import { Button } from "./Button";
 import { Icon } from "../Icon";
 import { cn } from "../../libs/cn";
+import { useI18n } from "../../hooks/i18n";
 
 interface Props {
   imgUrl?: string;
@@ -20,9 +21,10 @@ export function ImageSelector({
   disabled,
   className,
 }: Props) {
+  const t = useI18n();
   function handleSelectImage() {
     open({
-      title: "Select an image",
+      title: t("component.image_selector.title"),
       filters: [
         {
           name: "Image Files",
@@ -59,7 +61,7 @@ export function ImageSelector({
             <>
               <DocumentMagnifyingGlassIcon className="h-10.5 fill-text-primary! aria-disabled:hidden" />
               <span className="w-full px-2 text-center text-2xl text-text-primary aria-disabled:hidden whitespace-nowrap overflow-hidden text-ellipsis">
-                Select an image
+                {t("component.image_selector.title")}
               </span>
             </>
           )}

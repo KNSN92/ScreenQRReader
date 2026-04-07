@@ -1,10 +1,10 @@
 import Select from "react-select";
 import { cn } from "../../libs/cn";
 
-interface Props {
-  items: { label: string; value: string }[];
-  value?: string;
-  onChange?: (value: string | null) => void;
+interface Props<T extends string | number> {
+  items: { label: string; value: T }[];
+  value?: T | undefined;
+  onChange?: (value: T | null) => void;
   placeholder?: string;
   id?: string;
   className?: string;
@@ -18,14 +18,14 @@ interface Props {
 //   return result;
 // }
 
-export function Selector({
+export function Selector<T extends string | number>({
   items,
   value,
   onChange,
   placeholder,
   id,
   className,
-}: Props) {
+}: Props<T>) {
   const label = items.find((item) => item.value === value)?.label;
   return (
     <Select

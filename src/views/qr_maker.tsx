@@ -32,6 +32,7 @@ import { ImageSelector } from "../components/ui/ImageSelector";
 import { Checkbox } from "../components/ui/Checkbox";
 import { save } from "@tauri-apps/plugin-dialog";
 import { writeFile } from "@tauri-apps/plugin-fs";
+import { useI18n } from "../hooks/i18n";
 
 type QRCodeMakerOptions = GenQRCodeOptions & {
   type: DrawType;
@@ -127,12 +128,15 @@ export function QRMakerView() {
       qrcodeStatus = "error";
       break;
   }
+  const t = useI18n();
   return (
     <div className="flex size-full pt-4 bg-bg">
       <div className="w-full flex flex-col gap-4 pl-4">
         <header className="flex gap-4">
           <Icon className="w-12 aspect-square" shapeClassName="fill-white" />
-          <h1 className="text-text-primary text-5xl font-bold">QRCode Maker</h1>
+          <h1 className="text-text-primary text-5xl font-bold">
+            {t("qr_maker.title")}
+          </h1>
         </header>
         <div className="w-full h-fit pr-4">
           <TextArea
@@ -144,27 +148,26 @@ export function QRMakerView() {
         <div className="h-full pr-4 pb-4 flex flex-col gap-4 overflow-y-scroll">
           <div className="flex justify-between">
             <label className="text-3xl text-text-primary" htmlFor="ec-level">
-              Ec Level
+              {t("qr_maker.ec_level")}
             </label>
             <Selector
               id="ec-level"
               items={[
-                { label: "Low", value: "L" },
-                { label: "Medium", value: "M" },
-                { label: "Quartile", value: "Q" },
-                { label: "High", value: "H" },
+                { label: t("qr_maker.ec_level.l"), value: "L" },
+                { label: t("qr_maker.ec_level.m"), value: "M" },
+                { label: t("qr_maker.ec_level.q"), value: "Q" },
+                { label: t("qr_maker.ec_level.h"), value: "H" },
               ]}
               value={ecLevel}
               onChange={(value) => {
-                const isValid = value?.length === 1 && "LMQH".includes(value);
-                if (!isValid) return;
-                setEcLevel(value as EcLevel);
+                if (!value) return;
+                setEcLevel(value);
               }}
             />
           </div>
           <div className="flex justify-between">
             <label className="text-3xl text-text-primary" htmlFor="margin">
-              Margin
+              {t("qr_maker.margin")}
             </label>
             <TextField
               id="margin"
@@ -185,7 +188,7 @@ export function QRMakerView() {
           </div>
           <div className="flex justify-between">
             <label className="text-3xl text-text-primary" htmlFor="back-color">
-              Back Color
+              {t("qr_maker.back_color")}
             </label>
             <div className="flex gap-4">
               <div
@@ -210,7 +213,7 @@ export function QRMakerView() {
           </div>
           <div className="flex justify-between">
             <label className="text-3xl text-text-primary" htmlFor="dots-color">
-              Dots Color
+              {t("qr_maker.dots_color")}
             </label>
             <div className="flex gap-4">
               <div
@@ -235,7 +238,7 @@ export function QRMakerView() {
           </div>
           <div className="flex justify-between">
             <label className="text-3xl text-text-primary" htmlFor="dots-style">
-              Dots Style
+              {t("qr_maker.dots_style")}
             </label>
             <Selector
               id="dots-style"
@@ -248,10 +251,10 @@ export function QRMakerView() {
                 { label: "Classy Rounded", value: "classy-rounded" },
               ]}
               value={qrcodeOption.dotsOptions.type}
-              onChange={(value) =>
+              onChange={(dotType) => {
+                if (!dotType) return;
                 setQRCodeOption((options) => {
                   options.dotsOptions = options.dotsOptions || {};
-                  const dotType = value as DotType;
                   options.dotsOptions.type = dotType;
                   if (dotType === "dots") {
                     if (options.cornersDotOptions.type == null)
@@ -264,8 +267,8 @@ export function QRMakerView() {
                     if (options.cornersSquareOptions.type == "rounded")
                       options.cornersSquareOptions.type = undefined;
                   }
-                })
-              }
+                });
+              }}
               className="w-64"
             />
           </div>
@@ -273,7 +276,7 @@ export function QRMakerView() {
             onClick={() => setIsAdvancedOptionsOpen(!isAdvancedOptionsOpen)}
             className="w-fit flex items-center justify-start gap-4 py-4 text-2xl text-primary cursor-pointer"
           >
-            Advanced Options
+            {t("qr_maker.advanced_options")}
             {isAdvancedOptionsOpen ? (
               <ChevronUpIcon className="w-6 h-6 scale-125" />
             ) : (
@@ -283,10 +286,12 @@ export function QRMakerView() {
           {isAdvancedOptionsOpen && (
             <div className="relative w-full flex flex-col gap-4">
               <span className="text-4xl font-bold text-text-primary">
-                Image
+                {t("qr_maker.image_options")}
               </span>
               <div className="flex justify-between">
-                <span className="text-3xl text-text-primary">File</span>
+                <span className="text-3xl text-text-primary">
+                  {t("qr_maker.image_options.file")}
+                </span>
                 <ImageSelector
                   imgUrl={qrcodeOption.image}
                   onChange={(url) =>
@@ -298,7 +303,7 @@ export function QRMakerView() {
               </div>
               <div className="flex justify-between">
                 <span className="text-3xl text-text-primary">
-                  Background Dots
+                  {t("qr_maker.image_options.background_dots")}
                 </span>
                 <Checkbox
                   value={!qrcodeOption.imageOptions.hideBackgroundDots}
@@ -311,7 +316,7 @@ export function QRMakerView() {
               </div>
               <div className="flex justify-between">
                 <label className="text-3xl text-text-primary" htmlFor="margin">
-                  Size
+                  {t("qr_maker.image_options.size")}
                 </label>
                 <TextField
                   id="margin"
@@ -323,7 +328,6 @@ export function QRMakerView() {
                         Math.max(0, parseInt(value)),
                       );
                       const imageSize = imageSizePercent / 100;
-
                       if (isNaN(imageSize)) return;
                       options.imageOptions.imageSize = imageSize;
                       return options;
@@ -348,8 +352,11 @@ export function QRMakerView() {
         <QRCodeStatus status={qrcodeStatus} />
         <div className="flex gap-4 px-2">
           <div className="flex justify-between gap-2">
-            <label className="text-3xl text-text-primary" htmlFor="size">
-              size
+            <label
+              className="text-3xl text-text-primary text-nowrap"
+              htmlFor="size"
+            >
+              {t("qr_maker.generate_options.size")}
             </label>
             <TextField
               id="size"
@@ -365,8 +372,11 @@ export function QRMakerView() {
             />
           </div>
           <div className="flex justify-between gap-2">
-            <label className="text-3xl text-text-primary" htmlFor="format">
-              Format
+            <label
+              className="text-3xl text-text-primary text-nowrap"
+              htmlFor="format"
+            >
+              {t("qr_maker.generate_options.format")}
             </label>
             {/* TODO: formatセレクタを開いた際に下にはみ出してしまう問題を修正したい */}
             <Selector
@@ -408,7 +418,7 @@ export function QRMakerView() {
           }}
         >
           <ArrowDownTrayIcon className="w-10" />
-          Save
+          {t("qr_maker.save")}
         </Button>
       </div>
     </div>

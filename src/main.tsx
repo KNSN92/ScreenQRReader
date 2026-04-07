@@ -2,6 +2,7 @@ import ReactDom from "react-dom/client";
 import React from "react";
 
 import { getCurrentWindow } from "@tauri-apps/api/window";
+import { I18nProvider } from "./hooks/i18n";
 
 function DefaultView() {
   return <div>Unknown window</div>;
@@ -27,6 +28,8 @@ function View() {
 
 ReactDom.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <View />
+    <I18nProvider>
+      <View />
+    </I18nProvider>
   </React.StrictMode>,
 );

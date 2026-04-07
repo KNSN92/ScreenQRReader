@@ -7,6 +7,7 @@ use tauri_plugin_global_shortcut::{Modifiers, Shortcut};
 use tray::setup_tray;
 
 use crate::{
+    i18n::i18n_translations,
     qr_maker::{generate_qrcode, validate_qrcode},
     updater::check_update,
 };
@@ -53,7 +54,11 @@ pub fn run() {
             info!("Setup completed");
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![generate_qrcode, validate_qrcode])
+        .invoke_handler(tauri::generate_handler![
+            i18n_translations,
+            generate_qrcode,
+            validate_qrcode
+        ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

@@ -1,3 +1,4 @@
+import { useI18n } from "../hooks/i18n";
 import { cn } from "../libs/cn";
 
 interface Props {
@@ -5,25 +6,26 @@ interface Props {
 }
 
 export function QRCodeStatus({ status }: Props) {
+  const t = useI18n();
   let message;
   switch (status) {
     case "empty":
-      message = "QRCode is empty";
+      message = t("qr_maker.status.empty");
       break;
     case "generating":
-      message = "Generating...";
+      message = t("qr_maker.status.generating");
       break;
     case "valid":
-      message = "Scannable";
+      message = t("qr_maker.status.valid");
       break;
     case "invalid":
-      message = "UnScannable";
+      message = t("qr_maker.status.invalid");
       break;
     case "too-long":
-      message = "TextTooLong";
+      message = t("qr_maker.status.too_long");
       break;
     case "error":
-      message = "Error";
+      message = t("qr_maker.status.error");
       break;
   }
   const className = cn(

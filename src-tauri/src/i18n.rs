@@ -11,13 +11,19 @@ struct I18nData {
 }
 
 pub fn initialize(app_handle: &AppHandle) {
-    let locale = get_locale(app_handle);
+    let locale = resolve_locale(app_handle);
     info!("Use locale {locale}");
-    let localize_data = load_localize_data(app_handle, &locale);
+    let localize_data = load_translations(app_handle, &locale);
     app_handle.manage(I18nData {
         locale,
         localizations: localize_data,
     });
+}
+
+#[tauri::command]
+pub fn i18n_translations(app_handle: AppHandle) -> HashMap<String, String> {
+    let i18n_data = app_handle.state::<I18nData>();
+    i18n_data.localizations.clone()
 }
 
 pub fn translate(app_handle: &AppHandle, key: &str) -> String {
@@ -44,7 +50,7 @@ fn get_i18n_file_path(app_handle: &AppHandle, file_name: &str) -> PathBuf {
         .expect(&format!("Could not found i18n file \"{file_name}\""))
 }
 
-fn get_locale(app_handle: &AppHandle) -> String {
+fn resolve_locale(app_handle: &AppHandle) -> String {
     let locale = tauri_plugin_os::locale().unwrap_or(DEFAULT_LOCALE.to_string());
     let tags: Vec<&str> = locale.split("-").filter(|tag| !tag.is_empty()).collect();
     let mut locale = DEFAULT_LOCALE.to_string();
@@ -59,7 +65,7 @@ fn get_locale(app_handle: &AppHandle) -> String {
     locale
 }
 
-fn load_localize_data(app_handle: &AppHandle, locale: &str) -> HashMap<String, String> {
+fn load_translations(app_handle: &AppHandle, locale: &str) -> HashMap<String, String> {
     let file_name = format!("{}.json", locale);
     let path = get_i18n_file_path(app_handle, &file_name);
     let file = File::open(path).expect(&format!("Could not open i18n file \"{file_name}\""));
