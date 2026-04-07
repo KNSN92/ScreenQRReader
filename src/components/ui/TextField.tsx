@@ -19,7 +19,6 @@ export function TextField({
   const [inputValue, setInputValue] = useState<string | null>("");
   useEffect(() => {
     setInputValue(value ?? "");
-    console.log("change value ", value, inputValue);
   }, [value]);
   return (
     <input

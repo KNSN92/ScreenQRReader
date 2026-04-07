@@ -176,8 +176,6 @@ export function QRMakerView() {
                     Math.max(0, parseInt(value)),
                   );
                   const size = (qrcodeOption.width * marginPercent) / 100;
-                  console.log(size);
-
                   if (isNaN(size)) return;
                   setMargin(marginPercent);
                   options.margin = size;
@@ -320,7 +318,6 @@ export function QRMakerView() {
                   value={qrcodeOption.imageOptions.imageSize * 100 + "%"}
                   onInputFinish={(value) =>
                     setQRCodeOption((options) => {
-                      console.log(options.imageOptions.imageSize, value);
                       const imageSizePercent = Math.min(
                         100,
                         Math.max(0, parseInt(value)),

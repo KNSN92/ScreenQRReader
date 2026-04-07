@@ -9,6 +9,7 @@ import {
 } from "../libs/qrcode";
 import { Loading } from "./Loading";
 import { Icon } from "./Icon";
+import { error } from "@tauri-apps/plugin-log";
 
 interface Props {
   text: string;
@@ -45,7 +46,7 @@ export function QRCode({ text, eclevel, options, setQRCodeStatus }: Props) {
 
     const qrcode = await genQRCode(text, eclevel, options);
     if (typeof qrcode === "string") {
-      console.error(qrcode);
+      error(qrcode);
       setQRCodeStatus?.(qrcode);
     } else {
       preview.innerHTML = "";
