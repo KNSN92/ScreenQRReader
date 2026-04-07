@@ -3,8 +3,12 @@ import React from "react";
 
 import { getCurrentWindow } from "@tauri-apps/api/window";
 
+function DefaultView() {
+  return <div>Unknown window</div>;
+}
+
 function View() {
-  const [View, setView] = React.useState<React.FC | null>(null);
+  const [View, setView] = React.useState<React.FC>(DefaultView);
   const label = getCurrentWindow().label;
   switch (label) {
     case "qr_maker":
@@ -17,11 +21,8 @@ function View() {
         setView(() => module.UpdaterView),
       );
       break;
-    default:
-      setView(() => <div>Unknown window</div>);
-      break;
   }
-  return View && <View />;
+  return <View />;
 }
 
 ReactDom.createRoot(document.getElementById("root")!).render(
