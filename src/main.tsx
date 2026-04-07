@@ -12,12 +12,12 @@ function View() {
   const label = getCurrentWindow().label;
   switch (label) {
     case "qr_maker":
-      import("./view/qr_maker").then((module) =>
+      import("./views/qr_maker").then((module) =>
         setView(() => module.QRMakerView),
       );
       break;
     case "updater":
-      import("./view/updater").then((module) =>
+      import("./views/updater").then((module) =>
         setView(() => module.UpdaterView),
       );
       break;
