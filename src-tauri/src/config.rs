@@ -83,7 +83,10 @@ pub fn load_cfg<T: 'static>(app_handle: &AppHandle, key: ConfigKey) -> T {
         }
     }
     .unwrap_or(ConfigValue::default_value(key));
-    let value: Box<dyn Any> = Box::new(value);
+    let value: Box<dyn Any> = match value {
+        ConfigValue::OpenBrowser(v) => Box::new(v),
+        ConfigValue::ReadQrShortcut(v) => Box::new(v),
+    };
     value.downcast::<T>().map(|v| *v).unwrap_or_else(|_| {
         error!(
             "Failed to downcast config value for key {}",
