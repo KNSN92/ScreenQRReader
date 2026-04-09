@@ -7,29 +7,29 @@ const DEFAULT_LOCALE: &str = "en-US";
 
 struct I18nData {
     locale: String,
-    localizations: HashMap<String, String>,
+    translations: HashMap<String, String>,
 }
 
 pub fn initialize(app_handle: &AppHandle) {
     let locale = resolve_locale(app_handle);
     info!("Use locale {locale}");
-    let localize_data = load_translations(app_handle, &locale);
+    let translations = load_translations(app_handle, &locale);
     app_handle.manage(I18nData {
         locale,
-        localizations: localize_data,
+        translations,
     });
 }
 
 #[tauri::command]
 pub fn i18n_translations(app_handle: AppHandle) -> HashMap<String, String> {
     let i18n_data = app_handle.state::<I18nData>();
-    i18n_data.localizations.clone()
+    i18n_data.translations.clone()
 }
 
 pub fn translate(app_handle: &AppHandle, key: &str) -> String {
     let i18n_data = app_handle.state::<I18nData>();
-    let localizations = &i18n_data.localizations;
-    let translated = localizations
+    let translations = &i18n_data.translations;
+    let translated = translations
         .get(&key.to_string())
         .expect(&format!(
             "Could not translate to language {} from {key}",
