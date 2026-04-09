@@ -1,7 +1,4 @@
-use std::{
-    error::Error,
-    sync::{atomic::AtomicBool, Mutex},
-};
+use std::{error::Error, sync::Mutex};
 
 use anyhow::Result;
 use log::info;
@@ -22,7 +19,6 @@ mod tray;
 mod updater;
 
 pub struct AppState {
-    pub capturing: AtomicBool,
     pub read_qr_shortcut: Mutex<Shortcut>,
 }
 
@@ -58,8 +54,8 @@ pub fn run() {
 
 fn setup(app: &mut App) -> Result<(), Box<dyn Error>> {
     tauri::async_runtime::spawn(updater::check_update(app.handle().clone()));
+    qr_reader::init(app.handle());
     app.manage(AppState {
-        capturing: AtomicBool::new(false),
         read_qr_shortcut: Mutex::new(Shortcut::new(
             Some(Modifiers::union(Modifiers::META, Modifiers::SHIFT)),
             tauri_plugin_global_shortcut::Code::Digit1,

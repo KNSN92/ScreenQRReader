@@ -1,8 +1,8 @@
-use std::sync::atomic::Ordering;
+use std::sync::atomic::{AtomicBool, Ordering};
 
 use crate::{
     config::{load_cfg, ConfigKey},
-    i18n, screenshot, AppState,
+    i18n, screenshot,
 };
 use anyhow::Error;
 use log::{error, info, trace, warn};
@@ -12,6 +12,12 @@ use tauri_plugin_dialog::{DialogExt, MessageDialogButtons, MessageDialogKind};
 use tauri_plugin_notification::NotificationExt;
 use tauri_plugin_opener::OpenerExt;
 use url::Url;
+
+struct Capturing(AtomicBool);
+
+pub fn init(app_handle: &AppHandle) {
+    app_handle.manage(Capturing(AtomicBool::new(false)));
+}
 
 #[derive(Debug)]
 pub enum ScanResponse {
@@ -55,7 +61,7 @@ async fn scan_qr(app: &AppHandle) -> ScanResponse {
 pub fn process_qr(app: &AppHandle) {
     let app_handle = app.clone();
     tauri::async_runtime::spawn(async move {
-        let capturing = &app_handle.state::<AppState>().capturing;
+        let capturing = &app_handle.state::<Capturing>().0;
         if capturing.load(Ordering::Relaxed) {
             trace!("Multiple activation");
             return;
