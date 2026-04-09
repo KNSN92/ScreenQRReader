@@ -1,16 +1,15 @@
-use std::sync::{atomic::AtomicBool, Mutex};
+use std::{
+    error::Error,
+    sync::{atomic::AtomicBool, Mutex},
+};
 
 use anyhow::Result;
 use log::info;
 use tauri::{App, Manager};
 use tauri_plugin_global_shortcut::{Modifiers, Shortcut};
-use tray::setup_tray;
 
-use crate::{
-    i18n::i18n_translations,
-    qr_maker::{generate_qrcode, validate_qrcode},
-    updater::check_update,
-};
+pub use crate::i18n::i18n_translations;
+pub use crate::qr_maker::{generate_qrcode, validate_qrcode};
 
 mod config;
 mod hotkey;
@@ -47,13 +46,7 @@ pub fn run() {
         .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_opener::init())
-        .setup(|app| {
-            tauri::async_runtime::spawn(check_update(app.handle().clone()));
-            setup(app)?;
-            setup_tray(app)?;
-            info!("Setup completed");
-            Ok(())
-        })
+        .setup(setup)
         .invoke_handler(tauri::generate_handler![
             i18n_translations,
             generate_qrcode,
@@ -63,7 +56,8 @@ pub fn run() {
         .expect("error while running tauri application");
 }
 
-fn setup(app: &mut App) -> Result<()> {
+fn setup(app: &mut App) -> Result<(), Box<dyn Error>> {
+    tauri::async_runtime::spawn(updater::check_update(app.handle().clone()));
     app.manage(AppState {
         capturing: AtomicBool::new(false),
         read_qr_shortcut: Mutex::new(Shortcut::new(
@@ -78,5 +72,7 @@ fn setup(app: &mut App) -> Result<()> {
         app.set_dock_visibility(false);
     }
     i18n::initialize(app.handle());
+    tray::init(app)?;
+    info!("Setup completed");
     Ok(())
 }

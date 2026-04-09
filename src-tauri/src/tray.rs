@@ -16,7 +16,7 @@ use crate::{
     qr_reader::process_qr,
 };
 
-pub fn setup_tray(app: &App) -> Result<(), Box<dyn Error>> {
+pub fn init(app: &App) -> Result<(), Box<dyn Error>> {
     let scan_i = MenuItem::with_id(
         app,
         "scan",
