@@ -5,7 +5,7 @@ use crate::{
     i18n, screenshot,
 };
 use anyhow::Error;
-use log::{error, info, trace, warn};
+use log::{error, info, warn};
 use tauri::{AppHandle, Manager};
 use tauri_plugin_clipboard_manager::ClipboardExt;
 use tauri_plugin_dialog::{DialogExt, MessageDialogButtons, MessageDialogKind};
@@ -63,7 +63,7 @@ pub fn process_qr(app: &AppHandle) {
     tauri::async_runtime::spawn(async move {
         let capturing = &app_handle.state::<Capturing>().0;
         if capturing.load(Ordering::Relaxed) {
-            trace!("Multiple activation");
+            info!("Multiple activation");
             return;
         }
         capturing.store(true, Ordering::Relaxed);
@@ -84,10 +84,10 @@ async fn process_qr_inner(app_handle: &AppHandle) {
             }
         }
         ScanResponse::Canceled => {
-            trace!("Canceled");
+            info!("Canceled");
         }
         ScanResponse::NotFound => {
-            trace!("Not found");
+            info!("Not found");
             notificate(
                 app_handle,
                 Some(&i18n::translate(app_handle, "notification.notfound")),
