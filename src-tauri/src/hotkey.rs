@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use anyhow::Result;
 use log::info;
 use tauri::{AppHandle, Manager};
-use tauri_plugin_global_shortcut::{GlobalShortcutExt, Modifiers, Shortcut, ShortcutState};
+use tauri_plugin_global_shortcut::{Code, GlobalShortcutExt, Modifiers, Shortcut, ShortcutState};
 
 use crate::qr_reader::process_qr;
 
@@ -30,8 +30,8 @@ pub enum Hotkey {
 pub fn init(app: &AppHandle) {
     let hotkeys = hashmap! {
         Hotkey::Capture => Shortcut::new(
-            Some(Modifiers::union(Modifiers::META, Modifiers::SHIFT)),
-            tauri_plugin_global_shortcut::Code::Digit1,
+            Some(Modifiers::META | Modifiers::SHIFT),
+            Code::Digit1,
         )
     };
     app.manage(Hotkeys(hotkeys));
