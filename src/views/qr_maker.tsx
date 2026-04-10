@@ -7,17 +7,26 @@ import {
   QRError,
   ValidateQRCodeResponse,
 } from "../libs/qrcode";
-import { cssColorToHex } from "../libs/color";
 import { useDebouncedCallback } from "use-debounce";
-import { QRCode } from "../components/QRCode";
+
+import { cssColorToHex } from "../libs/color";
+import { useI18n } from "../hooks/i18n";
+
+import { Button } from "../components/ui/Button";
+import { Checkbox } from "../components/ui/Checkbox";
+import { Icon } from "../components/Icon";
+import { ImageSelector } from "../components/ui/ImageSelector";
+import { QRCodeStatus } from "../components/QRCodeStatus";
+import { TextArea } from "../components/ui/TextArea";
 import { TextField } from "../components/ui/TextField";
 import { Selector } from "../components/ui/Selector";
-import { TextArea } from "../components/ui/TextArea";
-import { QRCodeStatus } from "../components/QRCodeStatus";
+import { QRCode } from "../components/QRCode";
 
+import ArrowDownTrayIcon from "@heroicons/react/24/solid/ArrowDownTrayIcon";
+import CheckIcon from "@heroicons/react/24/solid/CheckIcon";
 import ChevronDownIcon from "@heroicons/react/24/solid/ChevronDownIcon";
 import ChevronUpIcon from "@heroicons/react/24/solid/ChevronUpIcon";
-import ArrowDownTrayIcon from "@heroicons/react/24/solid/ArrowDownTrayIcon";
+import ClipboardDocumentIcon from "@heroicons/react/24/outline/ClipboardDocumentIcon";
 
 import {
   CornerDotType,
@@ -26,13 +35,11 @@ import {
   DrawType,
   Gradient,
 } from "qr-code-styling";
-import { Icon } from "../components/Icon";
-import { Button } from "../components/ui/Button";
-import { ImageSelector } from "../components/ui/ImageSelector";
-import { Checkbox } from "../components/ui/Checkbox";
+
 import { save } from "@tauri-apps/plugin-dialog";
 import { writeFile } from "@tauri-apps/plugin-fs";
-import { useI18n } from "../hooks/i18n";
+import { writeImage, writeText } from "@tauri-apps/plugin-clipboard-manager";
+import { cn } from "../libs/cn";
 
 type QRCodeMakerOptions = GenQRCodeOptions & {
   type: DrawType;
@@ -128,7 +135,44 @@ export function QRMakerView() {
       qrcodeStatus = "error";
       break;
   }
+  const [isCopied, setIsCopied] = useState(false);
   const t = useI18n();
+
+  async function handleSaveButtonClick() {
+    const blob = await genQRCodeImageBlob(text, ecLevel, qrcodeOption, format);
+    if (typeof blob === "string") {
+      return;
+    }
+    const path = await save({
+      canCreateDirectories: true,
+      filters: [
+        {
+          name: "Image Files",
+          extensions: [format],
+        },
+      ],
+    });
+    if (path != null) writeFile(path, new Uint8Array(await blob.arrayBuffer()));
+  }
+
+  async function handleCopyButtonClick() {
+    const blob = await genQRCodeImageBlob(text, ecLevel, qrcodeOption, format);
+    if (typeof blob === "string") {
+      return;
+    }
+    switch (format) {
+      case "png":
+      case "jpeg":
+        await writeImage(await blob.arrayBuffer());
+        break;
+      case "svg":
+        await writeText(await blob.text());
+        break;
+    }
+    setIsCopied(true);
+    setTimeout(() => setIsCopied(false), 2000);
+  }
+
   return (
     <div className="flex size-full pt-4 bg-bg">
       <div className="w-full flex flex-col gap-4 pl-4">
@@ -391,35 +435,37 @@ export function QRMakerView() {
             />
           </div>
         </div>
-        <Button
-          variant="primary"
-          disabled={qrcodeStatus !== "valid"}
-          onClick={async () => {
-            const blob = await genQRCodeImageBlob(
-              text,
-              ecLevel,
-              qrcodeOption,
-              format,
-            );
-            if (typeof blob === "string") {
-              return;
-            }
-            const path = await save({
-              canCreateDirectories: true,
-              filters: [
-                {
-                  name: "Image Files",
-                  extensions: [format],
-                },
-              ],
-            });
-            if (path != null)
-              writeFile(path, new Uint8Array(await blob.arrayBuffer()));
-          }}
-        >
-          <ArrowDownTrayIcon className="w-10" />
-          {t("qr_maker.save")}
-        </Button>
+        <div className="flex">
+          <Button
+            variant="primary"
+            className="rounded-r-none"
+            disabled={qrcodeStatus !== "valid"}
+            onClick={handleSaveButtonClick}
+          >
+            <ArrowDownTrayIcon className="w-10" />
+            {t("qr_maker.save")}
+          </Button>
+          <div className="w-[1.5px] h-full bg-text-primary" />
+          <Button
+            variant="primary"
+            className="relative w-auto aspect-square rounded-l-none *:transition-all *:duration-200"
+            disabled={qrcodeStatus !== "valid"}
+            onClick={handleCopyButtonClick}
+          >
+            <CheckIcon
+              className={cn(
+                "absolute -translate-1/2 inset-1/2 w-10",
+                !isCopied && "opacity-0",
+              )}
+            />
+            <ClipboardDocumentIcon
+              className={cn(
+                "absolute -translate-1/2 inset-1/2 w-10",
+                isCopied && "opacity-0",
+              )}
+            />
+          </Button>
+        </div>
       </div>
     </div>
   );
@@ -429,7 +475,7 @@ async function genQRCodeImageBlob(
   text: string,
   ecLevel: EcLevel,
   options: QRCodeMakerOptions,
-  format: "png" | "jpeg" | "svg",
+  format: ImageFormat,
 ): Promise<QRError | Blob> {
   const qrcode = await genQRCode(text, ecLevel, options);
   if (typeof qrcode === "string") {
