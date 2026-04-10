@@ -11,6 +11,7 @@ mod config;
 mod hotkey;
 mod i18n;
 mod misc;
+mod platform;
 mod qr_maker;
 mod qr_reader;
 mod screenshot;
@@ -51,12 +52,7 @@ fn setup(app: &mut App) -> Result<(), Box<dyn Error>> {
     tauri::async_runtime::spawn(updater::check_update(app.handle().clone()));
     qr_reader::init(app.handle());
     hotkey::init(app.handle());
-    #[cfg(target_os = "macos")]
-    {
-        use tauri::ActivationPolicy;
-        app.set_activation_policy(ActivationPolicy::Accessory);
-        app.set_dock_visibility(false);
-    }
+    platform::init(app.handle())?;
     i18n::initialize(app.handle());
     tray::init(app)?;
     info!("Setup completed");
