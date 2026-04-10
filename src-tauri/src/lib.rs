@@ -1,9 +1,8 @@
-use std::{error::Error, sync::Mutex};
+use std::error::Error;
 
 use anyhow::Result;
 use log::info;
-use tauri::{App, Manager};
-use tauri_plugin_global_shortcut::{Modifiers, Shortcut};
+use tauri::App;
 
 pub use crate::i18n::i18n_translations;
 pub use crate::qr_maker::{generate_qrcode, validate_qrcode};
@@ -17,10 +16,6 @@ mod qr_reader;
 mod screenshot;
 mod tray;
 mod updater;
-
-pub struct AppState {
-    pub read_qr_shortcut: Mutex<Shortcut>,
-}
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -55,12 +50,7 @@ pub fn run() {
 fn setup(app: &mut App) -> Result<(), Box<dyn Error>> {
     tauri::async_runtime::spawn(updater::check_update(app.handle().clone()));
     qr_reader::init(app.handle());
-    app.manage(AppState {
-        read_qr_shortcut: Mutex::new(Shortcut::new(
-            Some(Modifiers::union(Modifiers::META, Modifiers::SHIFT)),
-            tauri_plugin_global_shortcut::Code::Digit1,
-        )),
-    });
+    hotkey::init(app.handle());
     #[cfg(target_os = "macos")]
     {
         use tauri::ActivationPolicy;

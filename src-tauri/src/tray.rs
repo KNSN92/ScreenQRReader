@@ -11,7 +11,7 @@ use tauri_plugin_dialog::DialogExt;
 
 use crate::{
     config::{load_cfg, store_cfg, ConfigKey, ConfigValue},
-    hotkey::{register_capture_hotkey, unregister_capture_hotkey},
+    hotkey::Hotkey,
     i18n, qr_maker,
     qr_reader::process_qr,
 };
@@ -43,7 +43,7 @@ pub fn init(app: &App) -> Result<(), Box<dyn Error>> {
     )?;
     let read_qr_shortcut = load_cfg(app.handle(), ConfigKey::ReadQrShortcut);
     if read_qr_shortcut {
-        register_capture_hotkey(app.handle()).unwrap();
+        Hotkey::Capture.register(app.handle())?;
     }
     let enable_hotkey_i = CheckMenuItem::with_id(
         app,
@@ -110,9 +110,9 @@ pub fn init(app: &App) -> Result<(), Box<dyn Error>> {
                     .map(ConfigValue::ReadQrShortcut)
                     .unwrap_or(ConfigValue::default_value(ConfigKey::ReadQrShortcut));
                 if enable_hotkey_cfg == ConfigValue::ReadQrShortcut(true) {
-                    register_capture_hotkey(app).unwrap();
+                    Hotkey::Capture.register(app).unwrap();
                 } else {
-                    unregister_capture_hotkey(app).unwrap();
+                    Hotkey::Capture.unregister(app).unwrap();
                 }
                 store_cfg(app, enable_hotkey_cfg);
             }
