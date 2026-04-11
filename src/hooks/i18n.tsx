@@ -28,10 +28,14 @@ export function I18nProvider({ children }: { children: ReactNode }) {
 
 export function useI18n() {
   const translations = useContext(I18nContext);
-  return (key: string) => {
+  return (key: string, arg: string | null = null) => {
     if (!translations[key]) {
       error(`Missing translation for key: ${key}`);
     }
-    return translations[key] || key;
+    if (arg) {
+      return translations[key]?.replace("{}", arg) || key;
+    } else {
+      return translations[key] || key;
+    }
   };
 }
