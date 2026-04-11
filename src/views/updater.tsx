@@ -11,6 +11,7 @@ import { cn } from "../libs/cn";
 import { Loading } from "../components/Loading";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import { Updater, useImmer } from "use-immer";
+import { useI18n } from "../hooks/i18n";
 
 type UpdaterStatus = "available" | "installing" | "installed" | "failed";
 
@@ -51,25 +52,31 @@ function Fetching() {
 function Content({ update }: { update: Update | null }) {
   const [updateStatus, setUpdateStatus] = useState<UpdaterStatus>("available");
   const [updatingInfo, setUpdatingInfo] = useImmer<UpdatingInfo | null>(null);
+  const t = useI18n();
 
   let title: string;
   let message: string | null = null;
   switch (updateStatus) {
     case "available":
-      title = "Update is Available";
-      message = `A ${update ? `version ${update.version}` : "new version"} is available for installation!`;
+      title = t("updater.available.title");
+      message = t(
+        "updater.available.message",
+        update
+          ? t("updater.available.message.version", update.version)
+          : t("updater.available.message.no_version"),
+      );
       break;
     case "installing":
-      title = "Installing Update...";
+      title = t("updater.installing.title");
       message = null;
       break;
     case "installed":
-      title = "Update Installed!";
-      message = "The new version is installed!";
+      title = t("updater.installed.title");
+      message = t("updater.installed.message");
       break;
     case "failed":
-      title = "Update Failed...";
-      message = "An error occurred while updating.\nPlease try again later.";
+      title = t("updater.failed.title");
+      message = t("updater.failed.message");
   }
   return (
     <div className="grow flex flex-col p-2 gap-2">
@@ -134,6 +141,7 @@ function Choices({
   setUpdateStatus: (status: UpdaterStatus) => void;
   setUpdatingInfo: Updater<UpdatingInfo | null>;
 }) {
+  const t = useI18n();
   switch (updateStatus) {
     case "available":
       return (
@@ -145,7 +153,7 @@ function Choices({
               getCurrentWindow().close();
             }}
           >
-            Skip
+            {t("updater.choice.skip")}
           </Button>
           <Button
             variant="primary"
@@ -163,7 +171,7 @@ function Choices({
             disabled={!(update || DEBUG)}
           >
             <ArrowDownOnSquare className="relative -top-0.5 fill-white h-6" />
-            Update
+            {t("updater.choice.install")}
           </Button>
         </>
       );
@@ -174,7 +182,7 @@ function Choices({
           className="w-24 h-full text-[16px] gap-1 rounded-lg"
           disabled={true}
         >
-          Cancel
+          {t("updater.choice.cancel")}
         </Button>
       );
     case "installed":
@@ -185,7 +193,7 @@ function Choices({
             className="w-24 h-full text-[16px] gap-1 rounded-lg"
             onClick={() => getCurrentWindow().close()}
           >
-            Skip
+            {t("updater.choice.skip")}
           </Button>
           <Button
             variant="primary"
@@ -193,7 +201,7 @@ function Choices({
             onClick={() => relaunch()}
           >
             <ArrowPathIcon className="relative -top-0.5 fill-white h-6" />
-            Restart
+            {t("updater.choice.restart")}
           </Button>
         </>
       );
@@ -203,7 +211,7 @@ function Choices({
           variant="secondary"
           className="w-24 h-full text-[16px] gap-1 rounded-lg"
         >
-          Close
+          {t("updater.choice.close")}
         </Button>
       );
   }
