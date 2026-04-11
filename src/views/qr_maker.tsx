@@ -383,7 +383,7 @@ export function QRMakerView() {
           )}
         </div>
       </div>
-      <div className="w-1 h-full rounded-full bg-text-secondary" />
+      <div className="w-1 h-auto mb-4 rounded-full bg-text-secondary" />
       <div className="flex flex-col justify-between w-full px-4 pb-4">
         <div className="w-full aspect-square">
           <QRCode
