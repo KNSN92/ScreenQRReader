@@ -81,7 +81,7 @@ function Content({ update }: { update: Update | null }) {
           {title}
         </h1>
         {message && (
-          <span className="text-xs text-text-primary">
+          <span className="pl-1 text-xs text-text-primary">
             {message
               .split("\n")
               .reduce(
