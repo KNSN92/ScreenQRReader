@@ -20,7 +20,7 @@ interface UpdatingInfo {
   downloaded: number;
 }
 
-const DEBUG = true;
+const DEBUG = false;
 
 export function UpdaterView() {
   const [update, setUpdate] = useState<Update | null>(null);
