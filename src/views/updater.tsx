@@ -14,6 +14,13 @@ import { Updater, useImmer } from "use-immer";
 
 type UpdaterStatus = "available" | "installing" | "installed" | "failed";
 
+interface UpdatingInfo {
+  total: number;
+  downloaded: number;
+}
+
+const DEBUG = true;
+
 export function UpdaterView() {
   const [update, setUpdate] = useState<Update | null>(null);
 
@@ -26,7 +33,7 @@ export function UpdaterView() {
       <div className="w-24 h-full flex justify-between items-center">
         <img src="/icon.png" className="w-full aspect-square" />
       </div>
-      {update == null ? <Fetching /> : <Content update={update} />}
+      {!(update != null || DEBUG) ? <Fetching /> : <Content update={update} />}
     </div>
   );
 }
@@ -39,11 +46,6 @@ function Fetching() {
       </div>
     </div>
   );
-}
-
-interface UpdatingInfo {
-  total: number;
-  downloaded: number;
 }
 
 function Content({ update }: { update: Update | null }) {
@@ -149,10 +151,16 @@ function Choices({
             variant="primary"
             className="w-24 h-full text-[16px] gap-1 rounded-lg"
             onClick={() => {
-              // __debug__simulateInstallUpdate(setUpdateStatus, setUpdatingInfo);
-              update && installUpdate(update, setUpdateStatus, setUpdatingInfo);
+              if (DEBUG) {
+                __debug__simulateInstallUpdate(
+                  setUpdateStatus,
+                  setUpdatingInfo,
+                );
+              } else if (update) {
+                installUpdate(update, setUpdateStatus, setUpdatingInfo);
+              }
             }}
-            disabled={!update}
+            disabled={!(update || DEBUG)}
           >
             <ArrowDownOnSquare className="relative -top-0.5 fill-white h-6" />
             Update
