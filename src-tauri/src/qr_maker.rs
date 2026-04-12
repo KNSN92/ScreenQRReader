@@ -160,20 +160,20 @@ const MARGIN: usize = 2; //
 // }
 
 fn test_qrcode(qr_img: ImageBuffer<Luma<u8>, Vec<u8>>, data: Vec<u8>) -> ValidateQRCodeResponse {
-    let mut scanner = zbar_rust::ZBarImageScanner::new();
     let (img_width, img_height) = qr_img.dimensions();
+    let mut scanner = zbar_rust::ZBarImageScanner::new();
     let results = scanner.scan_y800(qr_img.into_raw(), img_width, img_height);
-    let mut results = if let Err(_) = results {
-        return ValidateQRCodeResponse::ScanError;
-    } else {
-        results.unwrap()
+    let results = match results {
+        Ok(results) => results,
+        Err(_) => return ValidateQRCodeResponse::ScanError,
     };
-    if results.is_empty() {
-        return ValidateQRCodeResponse::Invalid;
+    let qr_data = match results.into_iter().next() {
+        Some(result) => result.data,
+        None => return ValidateQRCodeResponse::Invalid,
+    };
+    if qr_data == data {
+        ValidateQRCodeResponse::Valid
+    } else {
+        ValidateQRCodeResponse::Invalid
     }
-    let qr_data = results.remove(0).data;
-    if qr_data != data {
-        return ValidateQRCodeResponse::Invalid;
-    }
-    ValidateQRCodeResponse::Valid
 }
