@@ -4,9 +4,10 @@ use crate::{
     config::{load_cfg, ConfigKey},
     i18n, screenshot,
 };
-use anyhow::Error;
+use anyhow::{anyhow, Error};
 use image::GenericImageView;
 use log::{error, info, warn};
+use rxing::Exceptions;
 use tauri::{AppHandle, Manager};
 use tauri_plugin_clipboard_manager::ClipboardExt;
 use tauri_plugin_dialog::{DialogExt, MessageDialogButtons, MessageDialogKind};
@@ -25,7 +26,7 @@ pub enum ScanError {
     Canceled,
     NotFound,
     CaptureError(Error),
-    QRDecodeError(&'static str),
+    QRDecodeError(Error),
     EncodingError,
 }
 
@@ -36,13 +37,17 @@ async fn scan_qr(app: &AppHandle) -> Result<String, ScanError> {
         .map_err(|err| ScanError::CaptureError(err))
         .flatten()?;
     let (img_width, img_height) = image.dimensions();
-    let mut scanner = zbar_rust::ZBarImageScanner::new();
-    let results = scanner.scan_y800(image.to_luma8().into_raw(), img_width, img_height);
-    let result = results
-        .map(|results| results.into_iter().next().ok_or(ScanError::NotFound))
-        .map_err(|err| ScanError::QRDecodeError(err))
-        .flatten()?;
-    String::from_utf8(result.data).map_err(|_| ScanError::EncodingError)
+    let result =
+        rxing::helpers::detect_in_luma(image.to_luma8().into_raw(), img_width, img_height, None);
+    result
+        .map(|result| {
+            String::from_utf8(result.getRawBytes().to_vec()).map_err(|_| ScanError::EncodingError)
+        })
+        .map_err(|err| match err {
+            Exceptions::NotFoundException(_) => ScanError::NotFound,
+            _ => ScanError::QRDecodeError(anyhow!(err)),
+        })
+        .flatten()
 }
 
 pub fn process_qr(app: &AppHandle) {

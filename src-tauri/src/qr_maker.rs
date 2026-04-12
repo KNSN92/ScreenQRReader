@@ -2,7 +2,11 @@ use std::sync::OnceLock;
 
 use anyhow::Result;
 use image::{ImageBuffer, ImageFormat, Luma, Rgb};
-use qrcode::{types::QrError, EcLevel, QrCode};
+use log::error;
+use rxing::{
+    qrcode::{decoder::ErrorCorrectionLevel, encoder::qrcode_encoder},
+    Exceptions,
+};
 use serde::{Deserialize, Serialize};
 use tauri::{AppHandle, WebviewUrl, WebviewWindow, WebviewWindowBuilder, WindowEvent};
 
@@ -51,24 +55,25 @@ pub enum SerdeEcLevel {
     H = 3,
 }
 
-impl From<SerdeEcLevel> for EcLevel {
+impl From<SerdeEcLevel> for ErrorCorrectionLevel {
     fn from(value: SerdeEcLevel) -> Self {
         match value {
-            SerdeEcLevel::L => EcLevel::L,
-            SerdeEcLevel::M => EcLevel::M,
-            SerdeEcLevel::Q => EcLevel::Q,
-            SerdeEcLevel::H => EcLevel::H,
+            SerdeEcLevel::L => ErrorCorrectionLevel::L,
+            SerdeEcLevel::M => ErrorCorrectionLevel::M,
+            SerdeEcLevel::Q => ErrorCorrectionLevel::Q,
+            SerdeEcLevel::H => ErrorCorrectionLevel::H,
         }
     }
 }
 
-impl Into<SerdeEcLevel> for EcLevel {
+impl Into<SerdeEcLevel> for ErrorCorrectionLevel {
     fn into(self) -> SerdeEcLevel {
         match self {
-            EcLevel::L => SerdeEcLevel::L,
-            EcLevel::M => SerdeEcLevel::M,
-            EcLevel::Q => SerdeEcLevel::Q,
-            EcLevel::H => SerdeEcLevel::H,
+            ErrorCorrectionLevel::L => SerdeEcLevel::L,
+            ErrorCorrectionLevel::M => SerdeEcLevel::M,
+            ErrorCorrectionLevel::Q => SerdeEcLevel::Q,
+            ErrorCorrectionLevel::H => SerdeEcLevel::H,
+            ErrorCorrectionLevel::Invalid => SerdeEcLevel::M, // default to M
         }
     }
 }
@@ -82,36 +87,46 @@ pub struct GenerateQRCodePayload {
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum GenerateQRCodeResponse {
-    Success { code: String, width: usize },
+    Success { code: String, width: u32 },
     Error(String),
 }
 
 #[tauri::command]
 pub fn generate_qrcode(payload: GenerateQRCodePayload) -> GenerateQRCodeResponse {
-    let qr = QrCode::with_error_correction_level(payload.text.as_bytes(), payload.eclevel.into());
-    match qr {
-        Ok(qr) => GenerateQRCodeResponse::Success {
-            code: qr
-                .to_colors()
-                .iter()
-                .map(|c| c.select("1", "0"))
-                .collect::<String>(),
-            width: qr.width(),
-        },
-        Err(e) => match e {
-            QrError::DataTooLong => GenerateQRCodeResponse::Error("DataTooLong".to_string()),
-            QrError::InvalidCharacter => {
-                GenerateQRCodeResponse::Error("InvalidCharacter".to_string())
-            }
-            QrError::InvalidEciDesignator => {
-                GenerateQRCodeResponse::Error("InvalidEciDesignator".to_string())
-            }
-            QrError::InvalidVersion => GenerateQRCodeResponse::Error("InvalidVersion".to_string()),
-            QrError::UnsupportedCharacterSet => {
-                GenerateQRCodeResponse::Error("UnsupportedCharacterSet".to_string())
-            }
-        },
-    }
+    let qrcode = qrcode_encoder::encode(&payload.text, payload.eclevel.into());
+    let qrcode = match qrcode {
+        Ok(qrcode) => qrcode,
+        Err(e) => {
+            error!("{e:?}");
+            return match e {
+                Exceptions::WriterException(msg) if msg.to_lowercase().contains("data too big") => {
+                    GenerateQRCodeResponse::Error("DataTooLong".to_string())
+                }
+                Exceptions::IllegalArgumentException(msg) if msg == "version out of spec" => {
+                    GenerateQRCodeResponse::Error("InvalidVersion".to_string())
+                }
+                Exceptions::FormatException(_) => {
+                    GenerateQRCodeResponse::Error("InvalidCharacter".to_string())
+                }
+                _ => GenerateQRCodeResponse::Error("UnknownError".to_string()),
+            };
+        }
+    };
+    let matrix = match qrcode.getMatrix() {
+        Some(matrix) => matrix,
+        None => {
+            error!("QRCode matrix is empty ");
+            return GenerateQRCodeResponse::Error("UnknownError".to_string());
+        }
+    };
+    let width = matrix.getWidth();
+    let code = matrix
+        .getArray()
+        .into_iter()
+        .flatten()
+        .map(|c| if *c != 0 { "1" } else { "0" })
+        .collect::<String>();
+    GenerateQRCodeResponse::Success { code, width }
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -124,7 +139,7 @@ pub enum ValidateQRCodeResponse {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ValidateQRCodePayload {
-    data: Vec<u8>,
+    text: String,
     image: Vec<u8>,
 }
 
@@ -135,7 +150,7 @@ pub fn validate_qrcode(payload: ValidateQRCodePayload) -> ValidateQRCodeResponse
         Ok(img) => img.to_luma8(),
         Err(_) => return ValidateQRCodeResponse::InvalidImage,
     };
-    test_qrcode(qr_img, payload.data)
+    test_qrcode(qr_img, payload.text)
 }
 
 const MARGIN_COLORS: [Rgb<u8>; 8] = [
@@ -159,19 +174,20 @@ const MARGIN: usize = 2; //
 //     }
 // }
 
-fn test_qrcode(qr_img: ImageBuffer<Luma<u8>, Vec<u8>>, data: Vec<u8>) -> ValidateQRCodeResponse {
+fn test_qrcode(qr_img: ImageBuffer<Luma<u8>, Vec<u8>>, text: String) -> ValidateQRCodeResponse {
     let (img_width, img_height) = qr_img.dimensions();
-    let mut scanner = zbar_rust::ZBarImageScanner::new();
-    let results = scanner.scan_y800(qr_img.into_raw(), img_width, img_height);
-    let results = match results {
-        Ok(results) => results,
+    let result = rxing::helpers::detect_in_luma(qr_img.into_raw(), img_width, img_height, None);
+    let result = match result {
+        Ok(result) => result,
+        Err(Exceptions::NotFoundException(_)) => return ValidateQRCodeResponse::Invalid,
         Err(_) => return ValidateQRCodeResponse::ScanError,
     };
-    let qr_data = match results.into_iter().next() {
-        Some(result) => result.data,
-        None => return ValidateQRCodeResponse::Invalid,
+    let qr_data = String::from_utf8(result.getRawBytes().to_vec());
+    let qr_data = match qr_data {
+        Ok(qr_data) => qr_data,
+        Err(_) => return ValidateQRCodeResponse::Invalid,
     };
-    if qr_data == data {
+    if qr_data == text {
         ValidateQRCodeResponse::Valid
     } else {
         ValidateQRCodeResponse::Invalid

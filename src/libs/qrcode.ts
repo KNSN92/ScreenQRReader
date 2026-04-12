@@ -1,8 +1,6 @@
 import { invoke } from "@tauri-apps/api/core";
 import QRCodeStyling, { Options } from "qr-code-styling";
 
-const BOM = "\uFEFF";
-
 export type EcLevel = "L" | "M" | "Q" | "H";
 
 export interface QRPayload {
@@ -17,9 +15,8 @@ export interface QRCode {
 
 export type QRError = "DataTooLong" |
   "InvalidVersion" |
-  "UnsupportedCharacterSet" |
-  "InvalidEciDesignator" |
-  "InvalidCharacter";
+  "InvalidCharacter" |
+  "UnknownError";
 
 export type QRResult = { success: QRCode } | { error: QRError };
 
@@ -79,7 +76,7 @@ class HackedQRCodeStyling extends QRCodeStyling {
 export type GenQRCodeOptions = Omit<Options, "data" | "qrOptions">;
 
 export async function genQRCode(text: QRPayload["text"], eclevel: QRPayload["eclevel"], options: GenQRCodeOptions): Promise<HackedQRCodeStyling | QRError> {
-  const qr_result = await genRawQrcode(isOnlyAscii(text) ? text : BOM + text, eclevel);
+  const qr_result = await genRawQrcode(text, eclevel);
   if (!("success" in qr_result)) {
     return qr_result.error;
   }
@@ -87,12 +84,8 @@ export async function genQRCode(text: QRPayload["text"], eclevel: QRPayload["ecl
   return qrcode;
 }
 
-function isOnlyAscii(str: string): boolean {
-  return /^[\x00-\x7F]*$/.test(str);
-}
-
 export type ValidateQRCodeResponse = "Valid" | "Invalid" | "InvalidImage" | "ScanError";
 
-export async function validateQRCode(data: Uint8Array, image: Uint8Array): Promise<ValidateQRCodeResponse> {
-  return await invoke("validate_qrcode", { payload: { data, image } });
+export async function validateQRCode(text: string, image: Uint8Array): Promise<ValidateQRCodeResponse> {
+  return await invoke("validate_qrcode", { payload: { text, image } });
 }
