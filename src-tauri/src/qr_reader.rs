@@ -4,8 +4,10 @@ use crate::{
     config::{load_cfg, ConfigKey},
     i18n, screenshot,
 };
-use anyhow::Error;
+use anyhow::{anyhow, Error};
+use image::GenericImageView;
 use log::{error, info, warn};
+use rxing::Exceptions;
 use tauri::{AppHandle, Manager};
 use tauri_plugin_clipboard_manager::ClipboardExt;
 use tauri_plugin_dialog::{DialogExt, MessageDialogButtons, MessageDialogKind};
@@ -20,42 +22,32 @@ pub fn init(app_handle: &AppHandle) {
 }
 
 #[derive(Debug)]
-pub enum ScanResponse {
-    Success(String),
+pub enum ScanError {
     Canceled,
     NotFound,
     CaptureError(Error),
-    QRDecodeError(&'static str),
+    QRDecodeError(Error),
     EncodingError,
 }
 
-async fn scan_qr(app: &AppHandle) -> ScanResponse {
+async fn scan_qr(app: &AppHandle) -> Result<String, ScanError> {
     let image = screenshot::capture(app).await;
-    let image = match image {
-        Ok(image) => match image {
-            Some(image) => image,
-            None => return ScanResponse::Canceled,
-        },
-        Err(error) => {
-            return ScanResponse::CaptureError(error);
-        }
-    };
-    let mut scanner = zbar_rust::ZBarImageScanner::new();
-    let img_width = image.width();
-    let img_height = image.height();
-    let results = scanner.scan_y800(image.to_luma8().into_raw(), img_width, img_height);
-    let mut results = if let Err(err) = results {
-        return ScanResponse::QRDecodeError(err);
-    } else {
-        results.unwrap()
-    };
-    if results.is_empty() {
-        return ScanResponse::NotFound;
-    }
-    match try_decode_to_utf8(results.remove(0).data) {
-        Some(content) => ScanResponse::Success(content),
-        None => ScanResponse::EncodingError,
-    }
+    let image = image
+        .map(|image| image.ok_or(ScanError::Canceled))
+        .map_err(|err| ScanError::CaptureError(err))
+        .flatten()?;
+    let (img_width, img_height) = image.dimensions();
+    let result =
+        rxing::helpers::detect_in_luma(image.to_luma8().into_raw(), img_width, img_height, None);
+    result
+        .map(|result| {
+            String::from_utf8(result.getRawBytes().to_vec()).map_err(|_| ScanError::EncodingError)
+        })
+        .map_err(|err| match err {
+            Exceptions::NotFoundException(_) => ScanError::NotFound,
+            _ => ScanError::QRDecodeError(anyhow!(err)),
+        })
+        .flatten()
 }
 
 pub fn process_qr(app: &AppHandle) {
@@ -74,19 +66,24 @@ pub fn process_qr(app: &AppHandle) {
 
 async fn process_qr_inner(app_handle: &AppHandle) {
     let open_browser = load_cfg(app_handle, ConfigKey::OpenBrowser);
-    match scan_qr(app_handle).await {
-        ScanResponse::Success(content) => {
+    let result = scan_qr(app_handle).await;
+    let scan_err = match result {
+        Ok(content) => {
             info!("Success! '{content}'");
             if open_browser && is_url(&content) {
                 open_as_url(app_handle, &content);
             } else {
                 open_as_text(app_handle, &content);
             }
+            return;
         }
-        ScanResponse::Canceled => {
+        Err(err) => err,
+    };
+    match scan_err {
+        ScanError::Canceled => {
             info!("Canceled");
         }
-        ScanResponse::NotFound => {
+        ScanError::NotFound => {
             info!("Not found");
             notificate(
                 app_handle,
@@ -94,7 +91,7 @@ async fn process_qr_inner(app_handle: &AppHandle) {
                 None,
             );
         }
-        ScanResponse::CaptureError(error) => {
+        ScanError::CaptureError(error) => {
             error!("Capture error! {error}");
             notificate(
                 app_handle,
@@ -102,7 +99,7 @@ async fn process_qr_inner(app_handle: &AppHandle) {
                 None,
             );
         }
-        ScanResponse::QRDecodeError(error) => {
+        ScanError::QRDecodeError(error) => {
             error!("Decode error! {}", error);
             notificate(
                 app_handle,
@@ -110,7 +107,7 @@ async fn process_qr_inner(app_handle: &AppHandle) {
                 None,
             );
         }
-        ScanResponse::EncodingError => {
+        ScanError::EncodingError => {
             error!("Encoding error!");
             notificate(
                 app_handle,
@@ -119,13 +116,6 @@ async fn process_qr_inner(app_handle: &AppHandle) {
             );
         }
     };
-}
-
-fn try_decode_to_utf8(data: Vec<u8>) -> Option<String> {
-    match String::from_utf8(data) {
-        Ok(text) => Some(text),
-        Err(_) => None,
-    }
 }
 
 fn open_as_url(app_handle: &AppHandle, content: &str) {

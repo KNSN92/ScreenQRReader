@@ -9,7 +9,7 @@
 ## 使用技術
 - [rust](https://github.com/rust-lang/rust) (使用言語)
 - [tauri](https://github.com/tauri-apps/tauri) (使用フレームワーク)
-- [zbar](https://github.com/mchehab/zbar) (QRコードの読み取りに使用)
+- [rxing](https://github.com/rxing-core/rxing) (QRコードの読み取りに使用)
 - [react](https://react.dev/) (フロントエンドのUI構築に使用)
 - [tailwindcss](https://tailwindcss.com/) (スタイリングに使用)
 - [qrcode-styling](https://github.com/kozakdenys/qr-code-styling) (スタイリングされたQRコードの生成に使用)
@@ -26,6 +26,6 @@
 Tauriの標準的な手順に従ってください。~~不親切？~~
 
 ## ライセンス
-LGPL2.1 (zbar-rust からの継承)
+LGPL2.1
 
 QRコードは株式会社デンソーウェーブの登録商標です。

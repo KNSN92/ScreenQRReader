@@ -63,7 +63,7 @@ export function QRCode({ text, eclevel, options, setQRCodeStatus }: Props) {
         return;
       }
       const validate = await validateQRCode(
-        new TextEncoder().encode(text),
+        text,
         new Uint8Array(await data.arrayBuffer()),
       );
       setQRCodeStatus?.(validate);
