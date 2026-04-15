@@ -52,9 +52,9 @@ fn setup(app: &mut App) -> Result<(), Box<dyn Error>> {
     tauri::async_runtime::spawn(updater::check_update(app.handle().clone()));
     qr_reader::init(app.handle());
     hotkey::init(app.handle());
-    platform::init(app.handle())?;
     i18n::initialize(app.handle());
     tray::init(app)?;
+    platform::init(app.handle())?;
     info!("Setup completed");
     Ok(())
 }

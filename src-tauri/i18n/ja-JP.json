@@ -10,6 +10,8 @@
   "dialog.close": "閉じる",
   "dialog.copy_clipboard_error": "クリップボードへのコピーに失敗しました。",
   "dialog.cannot_open_qr_maker": "QRコードメーカーを開けませんでした。",
+  "dialog.no_port.title": "致命的なエラー",
+  "dialog.no_port.message": "利用可能なポートが見つかりませんでした。",
   "tray.scan": "読み取り",
   "tray.qrcode_maker": "QRコードメーカー",
   "tray.preferences": "設定",
