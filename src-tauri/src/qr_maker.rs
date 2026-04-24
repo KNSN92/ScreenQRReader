@@ -6,15 +6,14 @@ use qrcode::{types::QrError, EcLevel, QrCode};
 use serde::{Deserialize, Serialize};
 use tauri::{AppHandle, WebviewUrl, WebviewWindow, WebviewWindowBuilder, WindowEvent};
 
+use crate::platform;
+
 static QR_CODE_MAKER_WINDOW: OnceLock<WebviewWindow> = OnceLock::new();
 
 fn create_window(app: &AppHandle) -> Result<()> {
     let window = WebviewWindowBuilder::new(app, "qr_maker", WebviewUrl::App("index.html".into()))
         .title("QR Code Maker")
-        .inner_size(
-            1024.,
-            768. + if cfg!(target_os = "macos") { 27.5 } else { 0. },
-        )
+        .inner_size(1024., 768. + platform::window_decoration_height())
         .resizable(cfg!(debug_assertions))
         .visible_on_all_workspaces(true)
         .center()

@@ -1,6 +1,8 @@
 use tauri::{AppHandle, WebviewUrl, WebviewWindowBuilder, WindowEvent};
 use tauri_plugin_updater::UpdaterExt;
 
+use crate::platform;
+
 pub async fn check_update(app: AppHandle) {
     let update_available = app
         .updater()
@@ -16,10 +18,7 @@ pub async fn check_update(app: AppHandle) {
 
 fn create_window(app: &AppHandle) {
     let window = WebviewWindowBuilder::new(app, "updater", WebviewUrl::App("index.html".into()))
-        .inner_size(
-            350.,
-            150. + if cfg!(target_os = "macos") { 27.5 } else { 0. },
-        )
+        .inner_size(350., 150. + platform::window_decoration_height())
         .focused(true)
         .resizable(cfg!(debug_assertions))
         .title("Updater")

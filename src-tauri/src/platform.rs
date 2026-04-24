@@ -12,6 +12,10 @@ mod macos {
         debug!("macOS platform specific initialization completed");
         Ok(())
     }
+
+    pub fn window_decoration_height() -> f64 {
+        27.5
+    }
 }
 
 #[cfg(target_os = "windows")]
@@ -26,6 +30,10 @@ mod windows {
         debug!("Windows platform specific initialization completed");
         Ok(())
     }
+
+    pub fn window_decoration_height() -> f64 {
+        0
+    }
 }
 
 #[cfg(target_os = "linux")]
@@ -39,5 +47,9 @@ mod linux {
     pub fn init(app_handle: &AppHandle) -> Result<(), Box<dyn Error>> {
         debug!("Linux platform specific initialization completed");
         Ok(())
+    }
+
+    pub fn window_decoration_height() -> f64 {
+        0
     }
 }
